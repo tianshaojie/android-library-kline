@@ -113,6 +113,7 @@ public class VolumeDraw implements IChartDraw<Volume> {
     public void setTextSize(float textSize) {
         this.ma5Paint.setTextSize(textSize);
         this.ma10Paint.setTextSize(textSize);
+        this.mTextPaint.setTextSize(textSize);
     }
 
 }

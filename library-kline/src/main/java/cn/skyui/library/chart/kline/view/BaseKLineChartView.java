@@ -40,6 +40,7 @@ public abstract class BaseKLineChartView extends ScrollAndScaleView {
     private float mTranslateX = Float.MIN_VALUE;
     private int mWidth = 0;
     private int mTopPadding;
+    private int mChildPadding;
     private int mBottomPadding;
     private float mMainScaleY = 1;
     private float mChildScaleY = 1;
@@ -101,6 +102,9 @@ public abstract class BaseKLineChartView extends ScrollAndScaleView {
     private Rect mChildRect;
     private float mLineWidth;
 
+    private Paint mSelectorTextPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private Paint mSelectorBackgroundPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+
     public BaseKLineChartView(Context context) {
         super(context);
         init();
@@ -121,6 +125,7 @@ public abstract class BaseKLineChartView extends ScrollAndScaleView {
         mDetector = new GestureDetectorCompat(getContext(), this);
         mScaleDetector = new ScaleGestureDetector(getContext(), this);
         mTopPadding = (int) getResources().getDimension(R.dimen.chart_top_padding);
+        mChildPadding = (int) getResources().getDimension(R.dimen.child_top_padding);
         mBottomPadding = (int) getResources().getDimension(R.dimen.chart_bottom_padding);
 
         mKChartTabView = new KLineChartTabView(getContext());
@@ -159,7 +164,7 @@ public abstract class BaseKLineChartView extends ScrollAndScaleView {
         int mChildHeight = (int) (displayHeight * 0.25f);
         mMainRect = new Rect(0, mTopPadding, mWidth, mTopPadding + mMainHeight);
         mTabRect = new Rect(0, mMainRect.bottom, mWidth, mMainRect.bottom + mMainChildSpace);
-        mChildRect = new Rect(0, mTabRect.bottom, mWidth, mTabRect.bottom + mChildHeight);
+        mChildRect = new Rect(0, mTabRect.bottom + mChildPadding, mWidth, mTabRect.bottom + mChildHeight);
     }
 
     @Override
@@ -275,10 +280,15 @@ public abstract class BaseKLineChartView extends ScrollAndScaleView {
                 canvas.drawText(text, 0, fixTextY(rowSpace * i + mMainRect.top), mTextPaint);
             }
         }
-        //--------------画下方子图的值-------------
+        //--------------画下方子图的值，最大值最小值-------------
         if (mChildDraw != null) {
-            canvas.drawText(KLine.getValueFormatter(mChildDrawType).format(mChildMaxValue), 0, mChildRect.top + baseLine, mTextPaint);
-            canvas.drawText(KLine.getValueFormatter(mChildDrawType).format(mChildMinValue), 0, mChildRect.bottom, mTextPaint);
+//            canvas.drawText(KLine.getValueFormatter(mChildDrawType).format(mChildMaxValue),
+//                    mWidth - calculateWidth(formatValue(mChildMaxValue)), mChildRect.top + baseLine - textHeight, mTextPaint);
+//            canvas.drawText(KLine.getValueFormatter(mChildDrawType).format(mChildMinValue),
+//                    mWidth - calculateWidth(formatValue(mChildMinValue)), mChildRect.bottom, mTextPaint);
+
+//            canvas.drawText(KLine.getValueFormatter(mChildDrawType).format(mChildMaxValue), 0, mChildRect.top + baseLine, mTextPaint);
+//            canvas.drawText(KLine.getValueFormatter(mChildDrawType).format(mChildMinValue), 0, mChildRect.bottom, mTextPaint);
         }
         //--------------画时间---------------------
         float columnSpace = mWidth / mGridColumns;
@@ -323,8 +333,16 @@ public abstract class BaseKLineChartView extends ScrollAndScaleView {
         }
     }
 
-    private Paint mSelectorTextPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-    private Paint mSelectorBackgroundPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    /**
+     * 计算文本长度
+     *
+     * @return
+     */
+    private int calculateWidth(String text) {
+        Rect rect = new Rect();
+        mTextPaint.getTextBounds(text, 0, text.length(), rect);
+        return rect.width() + 5;
+    }
 
 
     /**
@@ -392,9 +410,8 @@ public abstract class BaseKLineChartView extends ScrollAndScaleView {
                 mMainDraw.drawText(canvas, point, x, y);
             }
             if (mChildDraw != null) {
-                float y = mChildRect.top + baseLine;
-                float x = mTextPaint.measureText(KLine.getValueFormatter(mChildDrawType).format(mChildMaxValue) + " ");
-                mChildDraw.drawText(canvas, point.getChildData(mChildDrawType), x, y);
+                float y = mChildRect.top + baseLine - textHeight;
+                mChildDraw.drawText(canvas, point.getChildData(mChildDrawType), 0, y);
             }
         }
     }
@@ -814,6 +831,13 @@ public abstract class BaseKLineChartView extends ScrollAndScaleView {
      */
     public float getTopPadding() {
         return mTopPadding;
+    }
+
+    /**
+     * 获取上方padding
+     */
+    public float getChildPadding() {
+        return mChildPadding;
     }
 
     /**

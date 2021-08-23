@@ -8,6 +8,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
 
 import cn.skyui.library.chart.kline.R;
+import cn.skyui.library.chart.kline.base.IValueFormatter;
 import cn.skyui.library.chart.kline.view.BaseKLineChartView;
 import cn.skyui.library.chart.kline.base.IChartData;
 import cn.skyui.library.chart.kline.base.IChartDraw;
@@ -21,18 +22,23 @@ import cn.skyui.library.chart.kline.data.model.Macd;
 
 public class MacdDraw implements IChartDraw<Macd> {
 
+    private Paint mTextPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private Paint mRedPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private Paint mGreenPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private Paint mDIFPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private Paint mDEAPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private Paint mMACDPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-    /**macd 中柱子的宽度*/
+    /**
+     * macd 中柱子的宽度
+     */
     private float mMACDWidth = 0;
+    private IValueFormatter formatter;
 
     public MacdDraw(BaseKLineChartView view) {
-        Context context=view.getContext();
-        mRedPaint.setColor(ContextCompat.getColor(context,R.color.chart_red));
-        mGreenPaint.setColor(ContextCompat.getColor(context,R.color.chart_green));
+        Context context = view.getContext();
+        mRedPaint.setColor(ContextCompat.getColor(context, R.color.chart_red));
+        mGreenPaint.setColor(ContextCompat.getColor(context, R.color.chart_green));
+        formatter = KLine.getValueFormatter(ChartEnum.MACD.name());
     }
 
     @Override
@@ -45,19 +51,22 @@ public class MacdDraw implements IChartDraw<Macd> {
     @Override
     public void drawText(@NonNull Canvas canvas, @NonNull IChartData chartData, float x, float y) {
         Macd point = (Macd) chartData;
-        String text = "";
-        text = "DIF:" + KLine.getValueFormatter(ChartEnum.MACD.name()).format(point.dif) + " ";
+        String text = "MACD(12,26,9)  ";
+        canvas.drawText(text, x, y, mTextPaint);
+        x += mTextPaint.measureText(text);
+        text = "MACD:" + formatter.format(point.macd) + "  ";
+        canvas.drawText(text, x, y, mMACDPaint);
+        x += mMACDPaint.measureText(text);
+        text = "DIF:" + formatter.format(point.dif) + "  ";
         canvas.drawText(text, x, y, mDEAPaint);
         x += mDIFPaint.measureText(text);
-        text = "DEA:" + KLine.getValueFormatter(ChartEnum.MACD.name()).format(point.dea) + " ";
+        text = "DEA:" + formatter.format(point.dea);
         canvas.drawText(text, x, y, mDIFPaint);
-        x += mDEAPaint.measureText(text);
-        text = "MACD:" + KLine.getValueFormatter(ChartEnum.MACD.name()).format(point.macd) + " ";
-        canvas.drawText(text, x, y, mMACDPaint);
     }
 
     /**
      * 画macd
+     *
      * @param canvas
      * @param x
      * @param macd
@@ -97,6 +106,7 @@ public class MacdDraw implements IChartDraw<Macd> {
 
     /**
      * 设置MACD的宽度
+     *
      * @param MACDWidth
      */
     public void setMACDWidth(float MACDWidth) {
@@ -106,8 +116,7 @@ public class MacdDraw implements IChartDraw<Macd> {
     /**
      * 设置曲线宽度
      */
-    public void setLineWidth(float width)
-    {
+    public void setLineWidth(float width) {
         mDEAPaint.setStrokeWidth(width);
         mDIFPaint.setStrokeWidth(width);
         mMACDPaint.setStrokeWidth(width);
@@ -116,10 +125,14 @@ public class MacdDraw implements IChartDraw<Macd> {
     /**
      * 设置文字大小
      */
-    public void setTextSize(float textSize)
-    {
+    public void setTextSize(float textSize) {
         mDEAPaint.setTextSize(textSize);
         mDIFPaint.setTextSize(textSize);
         mMACDPaint.setTextSize(textSize);
+        mTextPaint.setTextSize(textSize);
+    }
+
+    public void setTextColor(int color) {
+        mTextPaint.setColor(color);
     }
 }

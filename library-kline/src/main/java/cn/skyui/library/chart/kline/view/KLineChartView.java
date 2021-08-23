@@ -406,6 +406,7 @@ public class KLineChartView extends BaseKLineChartView {
     public void setTextColor(int color) {
         super.setTextColor(color);
         mVolumeDraw.setTextColor(color);
+        mMACDDraw.setTextColor(color);
     }
 
     /**
