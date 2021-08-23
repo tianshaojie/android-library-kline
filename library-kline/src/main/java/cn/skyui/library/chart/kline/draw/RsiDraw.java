@@ -37,13 +37,13 @@ public class RsiDraw implements IChartDraw<Rsi> {
     public void drawText(@NonNull Canvas canvas, @NonNull IChartData chartData, float x, float y) {
         Rsi point = (Rsi) chartData;
         String text = "";
-        text = "RSI1:" + KLine.getValueFormatter(ChartEnum.RSI.name()).format(point.rsi1) + " ";
+        text = "RSI1:" + KLine.getValueFormatter(ChartEnum.RSI.name()).format(point.rsi1) + "  ";
         canvas.drawText(text, x, y, mRSI1Paint);
         x += mRSI1Paint.measureText(text);
-        text = "RSI2:" + KLine.getValueFormatter(ChartEnum.RSI.name()).format(point.rsi2) + " ";
+        text = "RSI2:" + KLine.getValueFormatter(ChartEnum.RSI.name()).format(point.rsi2) + "  ";
         canvas.drawText(text, x, y, mRSI2Paint);
         x += mRSI2Paint.measureText(text);
-        text = "RSI3:" + KLine.getValueFormatter(ChartEnum.RSI.name()).format(point.rsi3) + " ";
+        text = "RSI3:" + KLine.getValueFormatter(ChartEnum.RSI.name()).format(point.rsi3) + "  ";
         canvas.drawText(text, x, y, mRSI3Paint);
     }
 

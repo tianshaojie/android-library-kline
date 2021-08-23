@@ -65,13 +65,13 @@ public class VolumeDraw implements IChartDraw<Volume> {
     @Override
     public void drawText(@NonNull Canvas canvas, @NonNull IChartData chartData, float x, float y) {
         Volume point = (Volume) chartData;
-        String text = "VOL:" + KLine.getValueFormatter(ChartEnum.VOL.name()).format(point.volume) + " ";
+        String text = "VOL:" + KLine.getValueFormatter(ChartEnum.VOL.name()).format(point.volume) + "  ";
         canvas.drawText(text, x, y, mTextPaint);
         x += mTextPaint.measureText(text);
-        text = "MA5:" + KLine.getValueFormatter(ChartEnum.VOL.name()).format(point.ma5Volume) + " ";
+        text = "MA5:" + KLine.getValueFormatter(ChartEnum.VOL.name()).format(point.ma5Volume) + "  ";
         canvas.drawText(text, x, y, ma5Paint);
         x += ma5Paint.measureText(text);
-        text = "MA10:" + KLine.getValueFormatter(ChartEnum.VOL.name()).format(point.ma10Volume) + " ";
+        text = "MA10:" + KLine.getValueFormatter(ChartEnum.VOL.name()).format(point.ma10Volume) + "  ";
         canvas.drawText(text, x, y, ma10Paint);
     }
 

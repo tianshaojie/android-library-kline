@@ -238,6 +238,10 @@ public abstract class BaseKLineChartView extends ScrollAndScaleView {
      * @param canvas
      */
     private void drawGird(Canvas canvas) {
+        //-----------------------TopMargin区域------------------------
+        canvas.drawLine(0, mMainRect.top - mTopPadding, mWidth, mMainRect.top - mTopPadding, mGridPaint);
+        canvas.drawLine(0, mMainRect.top - mTopPadding, 0, mMainRect.top + mTopPadding, mGridPaint);
+        canvas.drawLine(mWidth, mMainRect.top - mTopPadding, mWidth, mMainRect.top, mGridPaint);
         //-----------------------上方k线图------------------------
         //横向的grid
         float rowSpace = mMainRect.height() / mGridRows;
@@ -253,14 +257,14 @@ public abstract class BaseKLineChartView extends ScrollAndScaleView {
         }
 
         //纵向的grid
-        float columnSpace = mWidth / mGridColumns;
-        for (int i = 0; i <= mGridColumns; i++) {
-            canvas.drawLine(columnSpace * i, 0, columnSpace * i, mMainRect.bottom, mGridPaint);
-            canvas.drawLine(columnSpace * i, mMainRect.bottom, columnSpace * i, mVolRect.bottom, mGridPaint);
-            if (mChildDraw != null) {
-                canvas.drawLine(columnSpace * i, mVolRect.bottom, columnSpace * i, mChildRect.bottom, mGridPaint);
-            }
-        }
+//        float columnSpace = mWidth / mGridColumns;
+//        for (int i = 0; i <= mGridColumns; i++) {
+//            canvas.drawLine(columnSpace * i, mMainRect.top, columnSpace * i, mMainRect.bottom, mGridPaint);
+//            canvas.drawLine(columnSpace * i, mMainRect.bottom, columnSpace * i, mVolRect.bottom, mGridPaint);
+//            if (mChildDraw != null) {
+//                canvas.drawLine(columnSpace * i, mVolRect.bottom, columnSpace * i, mChildRect.bottom, mGridPaint);
+//            }
+//        }
     }
 
     /**
@@ -333,16 +337,16 @@ public abstract class BaseKLineChartView extends ScrollAndScaleView {
         //--------------画中间子图的值，最大值最小值-------------
         if (mVolDraw != null) {
             canvas.drawText(KLine.getValueFormatter(ChartEnum.VOL.name()).format(mVolMaxValue),
-                    mWidth - calculateWidth(formatValue(mVolMaxValue)), mMainRect.bottom + baseLine, mTextPaint);
-            /*canvas.drawText(mVolDraw.getValueFormatter().format(mVolMinValue),
-                    mWidth - calculateWidth(formatValue(mVolMinValue)), mVolRect.bottom, mTextPaint);*/
+                    mWidth - calculateWidth(KLine.getValueFormatter(ChartEnum.VOL.name()).format(mVolMaxValue)), mMainRect.bottom + baseLine, mTextPaint);
+            /*canvas.drawText(KLine.getValueFormatter(mChildDrawType).format(mVolMinValue),
+                    mWidth - calculateWidth(KLine.getValueFormatter(mChildDrawType).format(mVolMinValue)), mVolRect.bottom, mTextPaint);*/
         }
         //--------------画下方子图的值，最大值最小值-------------
         if (mChildDraw != null) {
             canvas.drawText(KLine.getValueFormatter(mChildDrawType).format(mChildMaxValue),
-                    mWidth - calculateWidth(formatValue(mChildMaxValue)), mChildRect.top + baseLine - textHeight, mTextPaint);
+                    mWidth - calculateWidth(KLine.getValueFormatter(mChildDrawType).format(mChildMaxValue)), mChildRect.top + baseLine - textHeight, mTextPaint);
 //            canvas.drawText(KLine.getValueFormatter(mChildDrawType).format(mChildMinValue),
-//                    mWidth - calculateWidth(formatValue(mChildMinValue)), mChildRect.bottom, mTextPaint);
+//                    mWidth - calculateWidth(KLine.getValueFormatter(mChildDrawType).format(mChildMinValue)), mChildRect.bottom, mTextPaint);
         }
         //--------------画时间---------------------
         float columnSpace = mWidth / mGridColumns;

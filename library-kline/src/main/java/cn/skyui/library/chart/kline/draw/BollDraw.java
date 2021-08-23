@@ -37,13 +37,13 @@ public class BollDraw implements IChartDraw<Boll> {
     public void drawText(@NonNull Canvas canvas, @NonNull IChartData chartData, float x, float y) {
         Boll point = (Boll) chartData;
         String text = "";
-        text = "UP:" + KLine.getValueFormatter(ChartEnum.BOOL.name()).format(point.up) + " ";
+        text = "UP:" + KLine.getValueFormatter(ChartEnum.BOOL.name()).format(point.up) + "  ";
         canvas.drawText(text, x, y, mUpPaint);
         x += mUpPaint.measureText(text);
-        text = "MB:" + KLine.getValueFormatter(ChartEnum.BOOL.name()).format(point.mb) + " ";
+        text = "MB:" + KLine.getValueFormatter(ChartEnum.BOOL.name()).format(point.mb) + "  ";
         canvas.drawText(text, x, y, mMbPaint);
         x += mMbPaint.measureText(text);
-        text = "DN:" + KLine.getValueFormatter(ChartEnum.BOOL.name()).format(point.dn) + " ";
+        text = "DN:" + KLine.getValueFormatter(ChartEnum.BOOL.name()).format(point.dn) + "  ";
         canvas.drawText(text, x, y, mDnPaint);
     }
 

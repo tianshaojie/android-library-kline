@@ -61,13 +61,13 @@ public class CandleDraw implements IChartDraw<Candle> {
     @Override
     public void drawText(@NonNull Canvas canvas, @NonNull IChartData chartData, float x, float y) {
         Candle point = (Candle) chartData;
-        String text = "MA5:" + KLine.getValueFormatter(ChartEnum.CANDLE.name()).format(point.ma5Price) + " ";
+        String text = "MA5:" + KLine.getValueFormatter(ChartEnum.CANDLE.name()).format(point.ma5Price) + "  ";
         canvas.drawText(text, x, y, ma5Paint);
         x += ma5Paint.measureText(text);
-        text = "MA10:" + KLine.getValueFormatter(ChartEnum.CANDLE.name()).format(point.ma10Price) + " ";
+        text = "MA10:" + KLine.getValueFormatter(ChartEnum.CANDLE.name()).format(point.ma10Price) + "  ";
         canvas.drawText(text, x, y, ma10Paint);
         x += ma10Paint.measureText(text);
-        text = "MA20:" + KLine.getValueFormatter(ChartEnum.CANDLE.name()).format(point.ma20Price) + " ";
+        text = "MA20:" + KLine.getValueFormatter(ChartEnum.CANDLE.name()).format(point.ma20Price) + "  ";
         canvas.drawText(text, x, y, ma20Paint);
     }
 

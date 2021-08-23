@@ -36,13 +36,13 @@ public class KdjDraw implements IChartDraw<Kdj> {
     public void drawText(@NonNull Canvas canvas, @NonNull IChartData chartData, float x, float y) {
         Kdj point = (Kdj) chartData;
         String text = "";
-        text = "K:" + KLine.getValueFormatter(ChartEnum.KDJ.name()).format(point.k) + " ";
+        text = "K:" + KLine.getValueFormatter(ChartEnum.KDJ.name()).format(point.k) + "  ";
         canvas.drawText(text, x, y, mKPaint);
         x += mKPaint.measureText(text);
-        text = "D:" + KLine.getValueFormatter(ChartEnum.KDJ.name()).format(point.d) + " ";
+        text = "D:" + KLine.getValueFormatter(ChartEnum.KDJ.name()).format(point.d) + "  ";
         canvas.drawText(text, x, y, mDPaint);
         x += mDPaint.measureText(text);
-        text = "J:" + KLine.getValueFormatter(ChartEnum.KDJ.name()).format(point.j) + " ";
+        text = "J:" + KLine.getValueFormatter(ChartEnum.KDJ.name()).format(point.j) + "  ";
         canvas.drawText(text, x, y, mJPaint);
     }
 
