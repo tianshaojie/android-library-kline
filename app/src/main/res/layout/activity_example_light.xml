@@ -1,0 +1,159 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              xmlns:app="http://schemas.android.com/apk/res-auto"
+              android:orientation="vertical">
+
+    <RelativeLayout
+        android:id="@+id/title_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:fitsSystemWindows="true"
+        android:background="#f4f4f4">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="40dp"
+            android:text="@string/app_name"
+            android:gravity="center"
+            android:textColor="#000"
+            android:textSize="16sp" />
+    </RelativeLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="0.5dp"
+        android:background="#e6e6e6" />
+
+    <LinearLayout
+        android:id="@+id/ll_status"
+        android:layout_width="match_parent"
+        android:layout_height="70dp"
+
+        android:orientation="horizontal"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp">
+
+        <RelativeLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_marginRight="20dp"
+            android:layout_weight="0.7"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:id="@+id/tv_price"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerHorizontal="true"
+                android:text="1233.51"
+                android:textColor="@color/chart_green"
+                android:textSize="24sp" />
+
+            <TextView
+                android:id="@+id/tv_percent"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/tv_price"
+                android:layout_centerHorizontal="true"
+                android:layout_marginTop="3dp"
+                android:text="0.51  +0.04%"
+                android:textColor="@color/chart_green"
+                android:textSize="12sp" />
+        </RelativeLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="0.5"
+            android:gravity="center_vertical"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="最高 xxx"
+                android:textColor="#000"
+                android:textSize="12sp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="最低 xxx"
+                android:textColor="#000"
+                android:textSize="12sp"
+                android:layout_marginTop="13dp" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="0.5"
+            android:gravity="center_vertical"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="昨收 xxx"
+                android:textColor="#000"
+                android:textSize="12sp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="开盘 xxx"
+                android:textColor="#000"
+                android:textSize="12sp"
+                android:layout_marginTop="13dp" />
+
+        </LinearLayout>
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="0.5dp"
+        android:background="#e6e6e6" />
+
+    <cn.skyui.library.chart.kline.view.KLineChartView
+        android:id="@+id/kchart_view"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        app:kc_text_size="@dimen/chart_text_size"
+        app:kc_text_color="#787878"
+        app:kc_line_width="@dimen/chart_line_width"
+        app:kc_background_color="#FFF"
+        app:kc_selected_line_color="#B1B2B6"
+        app:kc_selected_line_width="1dp"
+        app:kc_grid_line_color="#d0d0d0"
+        app:kc_grid_line_width="0.5dp"
+        app:kc_point_width="6dp"
+        app:kc_macd_width="4dp"
+        app:kc_dif_color="@color/chart_ma5"
+        app:kc_dea_color="@color/chart_ma10"
+        app:kc_macd_color="@color/chart_ma20"
+        app:kc_k_color="@color/chart_ma5"
+        app:kc_d_color="@color/chart_ma10"
+        app:kc_j_color="@color/chart_ma20"
+        app:kc_rsi1_color="@color/chart_ma5"
+        app:kc_rsi2_color="@color/chart_ma10"
+        app:kc_ris3_color="@color/chart_ma20"
+        app:kc_up_color="@color/chart_ma5"
+        app:kc_mb_color="@color/chart_ma10"
+        app:kc_dn_color="@color/chart_ma20"
+        app:kc_ma5_color="@color/chart_ma5"
+        app:kc_ma10_color="@color/chart_ma10"
+        app:kc_ma20_color="@color/chart_ma20"
+        app:kc_candle_line_width="1dp"
+        app:kc_candle_width="4dp"
+        app:kc_selector_background_color="#c8d0d0d0"
+        app:kc_selector_text_size="@dimen/chart_selector_text_size"
+        app:kc_tab_text_color="@color/tab_light_text_color_selector"
+        app:kc_tab_indicator_color="#4473b1"
+        app:kc_tab_background_color="#fff"
+        app:kc_candle_solid="false">
+    </cn.skyui.library.chart.kline.view.KLineChartView>
+</LinearLayout>
