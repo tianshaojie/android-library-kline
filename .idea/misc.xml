@@ -3,6 +3,9 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
+        <entry key="app/src/main/res/layout/activity_example.xml" value="0.3546875" />
+        <entry key="app/src/main/res/layout/activity_example_light.xml" value="0.3546875" />
+        <entry key="app/src/main/res/layout/activity_minute_chart.xml" value="0.1515625" />
         <entry key="kchartlib/src/main/res/layout/item_tab.xml" value="0.3546875" />
         <entry key="kchartlib/src/main/res/layout/layout_tab.xml" value="0.3546875" />
       </map>

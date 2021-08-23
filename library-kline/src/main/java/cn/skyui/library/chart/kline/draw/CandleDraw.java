@@ -19,25 +19,26 @@ import cn.skyui.library.chart.kline.data.model.KLine;
  * 主图的实现类
  */
 
-public class CandleDraw implements IChartDraw<Candle>{
+public class CandleDraw implements IChartDraw<Candle> {
+
+    private Context mContext;
 
     private float mCandleWidth = 0;
     private float mCandleLineWidth = 0;
+
     private Paint mRedPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private Paint mGreenPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private Paint ma5Paint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private Paint ma10Paint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private Paint ma20Paint = new Paint(Paint.ANTI_ALIAS_FLAG);
 
-    private Context mContext;
-
-    private boolean mCandleSolid=true;
+    private boolean mCandleSolid = true;
 
     public CandleDraw(BaseKLineChartView view) {
-        Context context=view.getContext();
-        mContext=context;
-        mRedPaint.setColor(ContextCompat.getColor(context,R.color.chart_red));
-        mGreenPaint.setColor(ContextCompat.getColor(context,R.color.chart_green));
+        Context context = view.getContext();
+        mContext = context;
+        mRedPaint.setColor(ContextCompat.getColor(context, R.color.chart_red));
+        mGreenPaint.setColor(ContextCompat.getColor(context, R.color.chart_green));
     }
 
     @Override
@@ -72,6 +73,7 @@ public class CandleDraw implements IChartDraw<Candle>{
 
     /**
      * 画Candle
+     *
      * @param canvas
      * @param x      x轴坐标
      * @param high   最高价
@@ -88,11 +90,10 @@ public class CandleDraw implements IChartDraw<Candle>{
         float lineR = mCandleLineWidth / 2;
         if (open > close) {
             //实心
-            if(mCandleSolid) {
+            if (mCandleSolid) {
                 canvas.drawRect(x - r, close, x + r, open, mRedPaint);
                 canvas.drawRect(x - lineR, high, x + lineR, low, mRedPaint);
-            }
-            else {
+            } else {
                 mRedPaint.setStrokeWidth(mCandleLineWidth);
                 canvas.drawLine(x, high, x, close, mRedPaint);
                 canvas.drawLine(x, open, x, low, mRedPaint);
@@ -114,6 +115,7 @@ public class CandleDraw implements IChartDraw<Candle>{
 
     /**
      * 设置蜡烛宽度
+     *
      * @param candleWidth
      */
     public void setCandleWidth(float candleWidth) {
@@ -122,6 +124,7 @@ public class CandleDraw implements IChartDraw<Candle>{
 
     /**
      * 设置蜡烛线宽度
+     *
      * @param candleLineWidth
      */
     public void setCandleLineWidth(float candleLineWidth) {
@@ -130,6 +133,7 @@ public class CandleDraw implements IChartDraw<Candle>{
 
     /**
      * 设置ma5颜色
+     *
      * @param color
      */
     public void setMa5Color(int color) {
@@ -138,6 +142,7 @@ public class CandleDraw implements IChartDraw<Candle>{
 
     /**
      * 设置ma10颜色
+     *
      * @param color
      */
     public void setMa10Color(int color) {
@@ -146,6 +151,7 @@ public class CandleDraw implements IChartDraw<Candle>{
 
     /**
      * 设置ma20颜色
+     *
      * @param color
      */
     public void setMa20Color(int color) {
@@ -155,8 +161,7 @@ public class CandleDraw implements IChartDraw<Candle>{
     /**
      * 设置曲线宽度
      */
-    public void setLineWidth(float width)
-    {
+    public void setLineWidth(float width) {
         ma20Paint.setStrokeWidth(width);
         ma10Paint.setStrokeWidth(width);
         ma5Paint.setStrokeWidth(width);
@@ -165,8 +170,7 @@ public class CandleDraw implements IChartDraw<Candle>{
     /**
      * 设置文字大小
      */
-    public void setTextSize(float textSize)
-    {
+    public void setTextSize(float textSize) {
         ma20Paint.setTextSize(textSize);
         ma10Paint.setTextSize(textSize);
         ma5Paint.setTextSize(textSize);

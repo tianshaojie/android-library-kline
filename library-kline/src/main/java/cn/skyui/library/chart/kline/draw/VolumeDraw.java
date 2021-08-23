@@ -41,16 +41,19 @@ public class VolumeDraw implements IChartDraw<Volume> {
                                @NonNull Canvas canvas, @NonNull BaseKLineChartView view, int position) {
 
         drawHistogram(canvas, curPoint, lastPoint, curX, view, position);
-        view.drawChildLine(canvas, ma5Paint, lastX, lastPoint.ma5Volume, curX, curPoint.ma5Volume);
-        view.drawChildLine(canvas, ma10Paint, lastX, lastPoint.ma10Volume, curX, curPoint.ma10Volume);
+        if (lastPoint.ma5Volume != 0f) {
+            view.drawVolLine(canvas, ma5Paint, lastX, lastPoint.ma5Volume, curX, curPoint.ma5Volume);;
+        }
+        if (lastPoint.ma10Volume != 0f) {
+            view.drawVolLine(canvas, ma10Paint, lastX, lastPoint.ma10Volume, curX, curPoint.ma10Volume);
+        }
     }
 
     private void drawHistogram(Canvas canvas, Volume curPoint, Volume lastPoint, float curX,
                                BaseKLineChartView view, int position) {
-
         float r = pillarWidth / 2;
-        float top = view.getChildY(curPoint.volume);
-        int bottom = view.getChildRect().bottom;
+        float top = view.getVolY(curPoint.volume);
+        int bottom = view.getVolRect().bottom;
         if (curPoint.closePrice >= curPoint.openPrice) {//涨
             canvas.drawRect(curX - r, top, curX + r, bottom, mRedPaint);
         } else {

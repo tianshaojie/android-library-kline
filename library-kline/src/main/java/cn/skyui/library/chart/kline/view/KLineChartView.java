@@ -3,6 +3,7 @@ package cn.skyui.library.chart.kline.view;
 import android.content.Context;
 import android.content.res.ColorStateList;
 import android.content.res.TypedArray;
+import android.graphics.Color;
 import android.support.annotation.ColorRes;
 import android.support.annotation.DimenRes;
 import android.support.v4.content.ContextCompat;
@@ -66,11 +67,12 @@ public class KLineChartView extends BaseKLineChartView {
         mRSIDraw = new RsiDraw(this);
         mBOLLDraw = new BollDraw(this);
         mCandleDraw = new CandleDraw(this);
-        addChildDraw(ChartEnum.VOL.name(),mVolumeDraw);
         addChildDraw(ChartEnum.MACD.name(),mMACDDraw);
         addChildDraw(ChartEnum.KDJ.name(), mKDJDraw);
         addChildDraw(ChartEnum.RSI.name(), mRSIDraw);
         addChildDraw(ChartEnum.BOOL.name(),mBOLLDraw);
+        setChildDraw(ChartEnum.MACD.name());
+        setVolDraw(mVolumeDraw);
         setMainDraw(mCandleDraw);
     }
 
@@ -82,10 +84,23 @@ public class KLineChartView extends BaseKLineChartView {
                 setPointWidth(array.getDimension(R.styleable.KChartView_kc_point_width, getDimension(R.dimen.chart_point_width)));
                 setTextSize(array.getDimension(R.styleable.KChartView_kc_text_size, getDimension(R.dimen.chart_text_size)));
                 setTextColor(array.getColor(R.styleable.KChartView_kc_text_color, getColor(R.color.chart_text)));
+
+                setMTextSize(array.getDimension(R.styleable.KChartView_kc_text_size, getDimension(R.dimen.chart_text_size)));
+                setMTextColor(array.getColor(R.styleable.KChartView_kc_text_color, getColor(R.color.chart_white)));
+
                 setLineWidth(array.getDimension(R.styleable.KChartView_kc_line_width, getDimension(R.dimen.chart_line_width)));
                 setBackgroundColor(array.getColor(R.styleable.KChartView_kc_background_color, getColor(R.color.chart_background)));
+
+                setSelectPointColor(array.getColor(R.styleable.KChartView_kc_background_color, getColor(R.color.chart_point_bac)));
+                setSelectedXLineColor(Color.WHITE);
+                setSelectedXLineWidth(getDimension(R.dimen.chart_line_width));
+
+                setSelectedYLineColor(Color.parseColor("#8040424D"));
+                setSelectedYLineWidth(getDimension(R.dimen.chart_point_width));
+
                 setSelectedLineColor(array.getColor(R.styleable.KChartView_kc_selected_line_color, getColor(R.color.chart_text)));
                 setSelectedLineWidth(array.getDimension(R.styleable.KChartView_kc_selected_line_width, getDimension(R.dimen.chart_line_width)));
+
                 setGridLineWidth(array.getDimension(R.styleable.KChartView_kc_grid_line_width, getDimension(R.dimen.chart_grid_line_width)));
                 setGridLineColor(array.getColor(R.styleable.KChartView_kc_grid_line_color, getColor(R.color.chart_grid_line)));
                 //macd
@@ -114,15 +129,6 @@ public class KLineChartView extends BaseKLineChartView {
                 setSelectorBackgroundColor(array.getColor(R.styleable.KChartView_kc_selector_background_color, getColor(R.color.chart_selector)));
                 setSelectorTextSize(array.getDimension(R.styleable.KChartView_kc_selector_text_size, getDimension(R.dimen.chart_selector_text_size)));
                 setCandleSolid(array.getBoolean(R.styleable.KChartView_kc_candle_solid, true));
-                //tab
-                mKChartTabView.setIndicatorColor(array.getColor(R.styleable.KChartView_kc_tab_indicator_color, getColor(R.color.chart_tab_indicator)));
-                mKChartTabView.setBackgroundColor(array.getColor(R.styleable.KChartView_kc_tab_background_color, getColor(R.color.chart_tab_background)));
-                ColorStateList colorStateList = array.getColorStateList(R.styleable.KChartView_kc_tab_text_color);
-                if (colorStateList == null) {
-                    mKChartTabView.setTextColor(ContextCompat.getColorStateList(getContext(), R.color.tab_text_color_selector));
-                } else {
-                    mKChartTabView.setTextColor(colorStateList);
-                }
             } catch (Exception e) {
                 e.printStackTrace();
             } finally {
