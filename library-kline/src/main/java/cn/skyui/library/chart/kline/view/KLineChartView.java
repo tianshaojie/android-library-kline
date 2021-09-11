@@ -1,9 +1,7 @@
 package cn.skyui.library.chart.kline.view;
 
 import android.content.Context;
-import android.content.res.ColorStateList;
 import android.content.res.TypedArray;
-import android.graphics.Color;
 import android.support.annotation.ColorRes;
 import android.support.annotation.DimenRes;
 import android.support.v4.content.ContextCompat;
@@ -80,29 +78,41 @@ public class KLineChartView extends BaseKLineChartView {
         TypedArray array = getContext().obtainStyledAttributes(attrs, R.styleable.KChartView);
         if (array != null) {
             try {
-                //public
-                setPointWidth(array.getDimension(R.styleable.KChartView_kc_point_width, getDimension(R.dimen.chart_point_width)));
-                setTextSize(array.getDimension(R.styleable.KChartView_kc_text_size, getDimension(R.dimen.chart_text_size)));
-                setTextColor(array.getColor(R.styleable.KChartView_kc_text_color, getColor(R.color.chart_text)));
-
-                setMTextSize(array.getDimension(R.styleable.KChartView_kc_text_size, getDimension(R.dimen.chart_text_size)));
-                setMTextColor(array.getColor(R.styleable.KChartView_kc_text_color, getColor(R.color.chart_white)));
-
-                setLineWidth(array.getDimension(R.styleable.KChartView_kc_line_width, getDimension(R.dimen.chart_line_width)));
+                // public
+                // 背景色
                 setBackgroundColor(array.getColor(R.styleable.KChartView_kc_background_color, getColor(R.color.chart_background)));
-
-                setSelectPointColor(array.getColor(R.styleable.KChartView_kc_background_color, getColor(R.color.chart_point_bac)));
-                setSelectedXLineColor(Color.WHITE);
-                setSelectedXLineWidth(getDimension(R.dimen.chart_line_width));
-
-                setSelectedYLineColor(Color.parseColor("#8040424D"));
-                setSelectedYLineWidth(getDimension(R.dimen.chart_point_width));
-
-                setSelectedLineColor(array.getColor(R.styleable.KChartView_kc_selected_line_color, getColor(R.color.chart_text)));
-                setSelectedLineWidth(array.getDimension(R.styleable.KChartView_kc_selected_line_width, getDimension(R.dimen.chart_line_width)));
-
+                // 坐标格线条颜色宽度
                 setGridLineWidth(array.getDimension(R.styleable.KChartView_kc_grid_line_width, getDimension(R.dimen.chart_grid_line_width)));
                 setGridLineColor(array.getColor(R.styleable.KChartView_kc_grid_line_color, getColor(R.color.chart_grid_line)));
+                // 各类曲线宽度
+                setLineWidth(array.getDimension(R.styleable.KChartView_kc_line_width, getDimension(R.dimen.chart_line_width)));
+                // 单个日期点的宽度
+                setPointWidth(array.getDimension(R.styleable.KChartView_kc_point_width, getDimension(R.dimen.chart_point_width)));
+                // 默认字体大小颜色
+                setTextSize(array.getDimension(R.styleable.KChartView_kc_text_size, getDimension(R.dimen.chart_text_size)));
+                setTextColor(array.getColor(R.styleable.KChartView_kc_text_color, getColor(R.color.chart_text)));
+                // 设置最大值/最小值文字大小颜色
+                setMaxMinTextSize(array.getDimension(R.styleable.KChartView_kc_max_min_text_size, getDimension(R.dimen.chart_max_min_text_size)));
+                setMaxMinTextColor(array.getColor(R.styleable.KChartView_kc_max_min_text_color, getColor(R.color.chart_max_min_text)));
+                // 选中十字线颜色宽度
+                setSelectedXLineColor(array.getColor(R.styleable.KChartView_kc_selected_x_line_color, getColor(R.color.chart_selected_x_line_color)));
+                setSelectedXLineWidth(array.getDimension(R.styleable.KChartView_kc_selected_x_line_width, getDimension(R.dimen.chart_selected_x_line_width)));
+                setSelectedYLineColor(array.getColor(R.styleable.KChartView_kc_selected_y_line_color, getColor(R.color.chart_selected_y_line_color)));
+                setSelectedYLineWidth(array.getDimension(R.styleable.KChartView_kc_selected_y_line_width, getDimension(R.dimen.chart_selected_y_line_width)));
+                // 选中十字线文字框的背景色
+                setSelectedPointTextBackgroundColor(array.getColor(R.styleable.KChartView_kc_selected_point_text_bg_color, getColor(R.color.chart_selected_point_text_bg_color)));
+                // 选中浮窗背景色字体色
+                setSelectorWindowBackgroundColor(array.getColor(R.styleable.KChartView_kc_selector_window_bg_color, getColor(R.color.chart_selector_window_bg_color)));
+                setSelectorWindowTextSize(array.getDimension(R.styleable.KChartView_kc_selected_window_text_size, getDimension(R.dimen.chart_selected_window_text_size)));
+
+                //candle
+                setMa5Color(array.getColor(R.styleable.KChartView_kc_dif_color, getColor(R.color.chart_ma5)));
+                setMa10Color(array.getColor(R.styleable.KChartView_kc_dea_color, getColor(R.color.chart_ma10)));
+                setMa20Color(array.getColor(R.styleable.KChartView_kc_macd_color, getColor(R.color.chart_ma20)));
+                setCandleWidth(array.getDimension(R.styleable.KChartView_kc_candle_width, getDimension(R.dimen.chart_candle_width)));
+                setCandleLineWidth(array.getDimension(R.styleable.KChartView_kc_candle_line_width, getDimension(R.dimen.chart_candle_line_width)));
+                setCandleSolid(array.getBoolean(R.styleable.KChartView_kc_candle_solid, true));
+
                 //macd
                 setMACDWidth(array.getDimension(R.styleable.KChartView_kc_macd_width, getDimension(R.dimen.chart_candle_width)));
                 setDIFColor(array.getColor(R.styleable.KChartView_kc_dif_color, getColor(R.color.chart_ma5)));
@@ -120,15 +130,7 @@ public class KLineChartView extends BaseKLineChartView {
                 setUpColor(array.getColor(R.styleable.KChartView_kc_dif_color, getColor(R.color.chart_ma5)));
                 setMbColor(array.getColor(R.styleable.KChartView_kc_dea_color, getColor(R.color.chart_ma10)));
                 setDnColor(array.getColor(R.styleable.KChartView_kc_macd_color, getColor(R.color.chart_ma20)));
-                //main
-                setMa5Color(array.getColor(R.styleable.KChartView_kc_dif_color, getColor(R.color.chart_ma5)));
-                setMa10Color(array.getColor(R.styleable.KChartView_kc_dea_color, getColor(R.color.chart_ma10)));
-                setMa20Color(array.getColor(R.styleable.KChartView_kc_macd_color, getColor(R.color.chart_ma20)));
-                setCandleWidth(array.getDimension(R.styleable.KChartView_kc_candle_width, getDimension(R.dimen.chart_candle_width)));
-                setCandleLineWidth(array.getDimension(R.styleable.KChartView_kc_candle_line_width, getDimension(R.dimen.chart_candle_line_width)));
-                setSelectorBackgroundColor(array.getColor(R.styleable.KChartView_kc_selector_background_color, getColor(R.color.chart_selector)));
-                setSelectorTextSize(array.getDimension(R.styleable.KChartView_kc_selector_text_size, getDimension(R.dimen.chart_selector_text_size)));
-                setCandleSolid(array.getBoolean(R.styleable.KChartView_kc_candle_solid, true));
+
             } catch (Exception e) {
                 e.printStackTrace();
             } finally {
@@ -336,8 +338,8 @@ public class KLineChartView extends BaseKLineChartView {
      *
      * @param textSize
      */
-    public void setSelectorTextSize(float textSize) {
-        super.setSelectorTextSize(textSize);
+    public void setSelectorWindowTextSize(float textSize) {
+        super.setSelectorWindowTextSize(textSize);
     }
 
     /**
@@ -345,8 +347,8 @@ public class KLineChartView extends BaseKLineChartView {
      *
      * @param color
      */
-    public void setSelectorBackgroundColor(int color) {
-        super.setSelectorBackgroundColor(color);
+    public void setSelectorWindowBackgroundColor(int color) {
+        super.setSelectorWindowBackgroundColor(color);
     }
 
     /**

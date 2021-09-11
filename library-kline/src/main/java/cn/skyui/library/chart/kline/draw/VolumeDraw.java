@@ -33,7 +33,7 @@ public class VolumeDraw implements IChartDraw<Volume> {
         Context context = view.getContext();
         mRedPaint.setColor(ContextCompat.getColor(context, R.color.chart_red));
         mGreenPaint.setColor(ContextCompat.getColor(context, R.color.chart_green));
-        pillarWidth = ViewUtil.Dp2Px(context, 4);
+        pillarWidth = ViewUtil.dp2Px(context, 5);
     }
 
     @Override

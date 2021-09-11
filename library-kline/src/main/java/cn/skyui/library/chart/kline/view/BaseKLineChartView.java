@@ -13,8 +13,6 @@ import android.support.v4.view.GestureDetectorCompat;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
-import android.view.ViewGroup;
-import android.widget.RelativeLayout;
 
 import cn.skyui.library.chart.kline.R;
 
@@ -36,7 +34,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * k线图
+ * K线图
  */
 public abstract class BaseKLineChartView extends ScrollAndScaleView {
 
@@ -82,16 +80,16 @@ public abstract class BaseKLineChartView extends ScrollAndScaleView {
     private Paint mMaxMinPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 
     private Paint mBackgroundPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-    private Paint mSelectedLinePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+//    private Paint mSelectedLinePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 
     // 长按浮窗
-    private Paint mSelectorTextPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-    private Paint mSelectorBackgroundPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private Paint mSelectorWindowTextPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private Paint mSelectorWindowBackgroundPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 
     // 长按十字线/文字
     private Paint mSelectedXLinePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private Paint mSelectedYLinePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-    private Paint mSelectPointPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private Paint mSelectedPointPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private Paint mSelectorFramePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 
     private int mSelectedIndex;
@@ -163,7 +161,7 @@ public abstract class BaseKLineChartView extends ScrollAndScaleView {
             }
         });
 
-        mSelectorFramePaint.setStrokeWidth(ViewUtil.Dp2Px(getContext(), 0.6f));
+        mSelectorFramePaint.setStrokeWidth(ViewUtil.dp2Px(getContext(), 0.6f));
         mSelectorFramePaint.setStyle(Paint.Style.STROKE);
         mSelectorFramePaint.setColor(Color.WHITE);
     }
@@ -381,8 +379,8 @@ public abstract class BaseKLineChartView extends ScrollAndScaleView {
         if (isLongPress) {
             // 画Y值
             KLine point = (KLine) getItem(mSelectedIndex);
-            float w1 = ViewUtil.Dp2Px(getContext(), 5);
-            float w2 = ViewUtil.Dp2Px(getContext(), 3);
+            float w1 = ViewUtil.dp2Px(getContext(), 5);
+            float w2 = ViewUtil.dp2Px(getContext(), 3);
             float r = textHeight / 2 + w2;
             y = getMainY(point.close);
             float x;
@@ -397,7 +395,7 @@ public abstract class BaseKLineChartView extends ScrollAndScaleView {
                 path.lineTo(textWidth + 2 * w1 + w2, y);
                 path.lineTo(textWidth + 2 * w1, y - r);
                 path.close();
-                canvas.drawPath(path, mSelectPointPaint);
+                canvas.drawPath(path, mSelectedPointPaint);
                 canvas.drawPath(path, mSelectorFramePaint);
                 canvas.drawText(text, x + w1, fixTextY1(y), mTextPaint);
             } else {
@@ -409,7 +407,7 @@ public abstract class BaseKLineChartView extends ScrollAndScaleView {
                 path.lineTo(mWidth - 2, y - r);
                 path.lineTo(x + w2, y - r);
                 path.close();
-                canvas.drawPath(path, mSelectPointPaint);
+                canvas.drawPath(path, mSelectedPointPaint);
                 canvas.drawPath(path, mSelectorFramePaint);
                 canvas.drawText(text, x + w1 + w2, fixTextY1(y), mTextPaint);
             }
@@ -431,7 +429,7 @@ public abstract class BaseKLineChartView extends ScrollAndScaleView {
                 x = mWidth - 1 - textWidth / 2 - w1;
             }
 
-            canvas.drawRect(x - textWidth / 2 - w1, y, x + textWidth / 2 + w1, y + baseLine + r, mSelectPointPaint);
+            canvas.drawRect(x - textWidth / 2 - w1, y, x + textWidth / 2 + w1, y + baseLine + r, mSelectedPointPaint);
             canvas.drawRect(x - textWidth / 2 - w1, y, x + textWidth / 2 + w1, y + baseLine + r, mSelectorFramePaint);
             canvas.drawText(date, x - textWidth / 2, y + baseLine + 5, mTextPaint);
 
@@ -479,8 +477,8 @@ public abstract class BaseKLineChartView extends ScrollAndScaleView {
         float textHeight = metrics.descent - metrics.ascent;
 
         int index = getSelectedIndex();
-        float padding = ViewUtil.Dp2Px(getContext(), 5);
-        float margin = ViewUtil.Dp2Px(getContext(), 5);
+        float padding = ViewUtil.dp2Px(getContext(), 5);
+        float margin = ViewUtil.dp2Px(getContext(), 5);
         float width = 0;
         float left;
         float top = margin+getTopPadding();
@@ -507,11 +505,11 @@ public abstract class BaseKLineChartView extends ScrollAndScaleView {
         }
 
         RectF r = new RectF(left, top, left + width, top + height);
-        canvas.drawRoundRect(r, padding, padding, mSelectorBackgroundPaint);
+        canvas.drawRoundRect(r, padding, padding, mSelectorWindowBackgroundPaint);
         float y = top + padding * 2 + (textHeight - metrics.bottom - metrics.top) / 2;
 
         for (String s : strings) {
-            canvas.drawText(s, left + padding, y, mSelectorTextPaint);
+            canvas.drawText(s, left + padding, y, mSelectorWindowTextPaint);
             y += textHeight + padding;
         }
 
@@ -1171,42 +1169,42 @@ public abstract class BaseKLineChartView extends ScrollAndScaleView {
         mGridPaint.setColor(color);
     }
 
-    /**
-     * 设置选择线宽度
-     */
-    public void setSelectedLineWidth(float width) {
-        mSelectedLinePaint.setStrokeWidth(width);
-    }
-
-    /**
-     * 设置表格线颜色
-     */
-    public void setSelectedLineColor(int color) {
-        mSelectedLinePaint.setColor(color);
-    }
+//    /**
+//     * 设置选择线宽度
+//     */
+//    public void setSelectedLineWidth(float width) {
+//        mSelectedLinePaint.setStrokeWidth(width);
+//    }
+//
+//    /**
+//     * 设置表格线颜色
+//     */
+//    public void setSelectedLineColor(int color) {
+//        mSelectedLinePaint.setColor(color);
+//    }
 
     /**
      * 设置文字颜色
      */
     public void setTextColor(int color) {
         mTextPaint.setColor(color);
-        mSelectorTextPaint.setColor(color);
+        mSelectorWindowTextPaint.setColor(color);
     }
 
     /**
      * 设置选择器文字大小
      * @param textSize
      */
-    public void setSelectorTextSize(float textSize){
-        mSelectorTextPaint.setTextSize(textSize);
+    public void setSelectorWindowTextSize(float textSize){
+        mSelectorWindowTextPaint.setTextSize(textSize);
     }
 
     /**
      * 设置选择器背景
      * @param color
      */
-    public void setSelectorBackgroundColor(int color) {
-        mSelectorBackgroundPaint.setColor(color);
+    public void setSelectorWindowBackgroundColor(int color) {
+        mSelectorWindowBackgroundPaint.setColor(color);
     }
 
     /**
@@ -1219,14 +1217,14 @@ public abstract class BaseKLineChartView extends ScrollAndScaleView {
     /**
      * 设置最大值/最小值文字颜色
      */
-    public void setMTextColor(int color) {
+    public void setMaxMinTextColor(int color) {
         mMaxMinPaint.setColor(color);
     }
 
     /**
      * 设置最大值/最小值文字大小
      */
-    public void setMTextSize(float textSize) {
+    public void setMaxMinTextSize(float textSize) {
         mMaxMinPaint.setTextSize(textSize);
     }
 
@@ -1292,15 +1290,15 @@ public abstract class BaseKLineChartView extends ScrollAndScaleView {
         return mBackgroundPaint;
     }
 
-    public Paint getSelectedLinePaint() {
-        return mSelectedLinePaint;
-    }
+//    public Paint getSelectedLinePaint() {
+//        return mSelectedLinePaint;
+//    }
 
     /**
      * 设置选中point 值显示背景
      */
-    public void setSelectPointColor(int color) {
-        mSelectPointPaint.setColor(color);
+    public void setSelectedPointTextBackgroundColor(int color) {
+        mSelectedPointPaint.setColor(color);
     }
 
     /**

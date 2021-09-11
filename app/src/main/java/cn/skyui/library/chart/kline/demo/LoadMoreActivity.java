@@ -24,14 +24,14 @@ import butterknife.ButterKnife;
 
 public class LoadMoreActivity extends AppCompatActivity implements KLineChartView.KChartRefreshListener {
 
-    @BindView(R.id.title_view)
-    RelativeLayout mTitleView;
-    @BindView(R.id.tv_price)
-    TextView mTvPrice;
-    @BindView(R.id.tv_percent)
-    TextView mTvPercent;
-    @BindView(R.id.ll_status)
-    LinearLayout mLlStatus;
+//    @BindView(R.id.title_view)
+//    RelativeLayout mTitleView;
+//    @BindView(R.id.tv_price)
+//    TextView mTvPrice;
+//    @BindView(R.id.tv_percent)
+//    TextView mTvPercent;
+//    @BindView(R.id.ll_status)
+//    LinearLayout mLlStatus;
     @BindView(R.id.kchart_view)
     KLineChartView mKChartView;
     private KLineChartAdapter mAdapter;
@@ -70,11 +70,11 @@ public class LoadMoreActivity extends AppCompatActivity implements KLineChartVie
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
         if (this.getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
-            mLlStatus.setVisibility(View.GONE);
+//            mLlStatus.setVisibility(View.GONE);
             mKChartView.setGridRows(3);
             mKChartView.setGridColumns(8);
         } else if (this.getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
-            mLlStatus.setVisibility(View.VISIBLE);
+//            mLlStatus.setVisibility(View.VISIBLE);
             mKChartView.setGridRows(4);
             mKChartView.setGridColumns(4);
         }
@@ -85,7 +85,7 @@ public class LoadMoreActivity extends AppCompatActivity implements KLineChartVie
         new Thread(new Runnable() {
             @Override
             public void run() {
-                final List<KLine> data = DataRequest.getData(LoadMoreActivity.this, mAdapter.getCount(), 500);
+                final List<KLine> data = DataRequest.getData(LoadMoreActivity.this, mAdapter.getCount(), 200);
                 try {
                     Thread.sleep(1000);
                 } catch (InterruptedException e) {
