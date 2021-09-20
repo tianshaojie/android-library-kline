@@ -99,6 +99,7 @@ public abstract class BaseKLineChartView extends ScrollAndScaleView {
 
     private Boolean isWR = false;
     private Boolean isShowChild = false;
+    private Boolean isShowVol = true;
 
     //当前点的个数
     private int mItemCount;
@@ -185,11 +186,13 @@ public abstract class BaseKLineChartView extends ScrollAndScaleView {
             mMainRect = new Rect(0, mTopPadding, mWidth, mTopPadding + mMainHeight);
             mVolRect = new Rect(0, mMainRect.bottom + mChildPadding, mWidth, mMainRect.bottom + mVolHeight);
             mChildRect = new Rect(0, mVolRect.bottom + mChildPadding, mWidth, mVolRect.bottom + mChildHeight);
-        } else {
+        } else if(isShowVol) {
             int mMainHeight = (int) (displayHeight * 0.75f);
             int mVolHeight = (int) (displayHeight * 0.25f);
             mMainRect = new Rect(0, mTopPadding, mWidth, mTopPadding + mMainHeight);
             mVolRect = new Rect(0, mMainRect.bottom + mChildPadding, mWidth, mMainRect.bottom + mVolHeight);
+        } else {
+            mMainRect = new Rect(0, mTopPadding, mWidth, mTopPadding + displayHeight);
         }
     }
 
@@ -209,25 +212,6 @@ public abstract class BaseKLineChartView extends ScrollAndScaleView {
         drawMaxAndMin(canvas);
         drawValue(canvas, isLongPress ? mSelectedIndex : mStopIndex);
         canvas.restore();
-    }
-
-    public float getMainY(float value) {
-        return (mMainMaxValue - value) * mMainScaleY + mMainRect.top;
-    }
-    public float getVolY(float value) {
-        return (mVolMaxValue - value) * mVolScaleY + mVolRect.top;
-    }
-
-    public float getChildY(float value) {
-        return (mChildMaxValue - value) * mChildScaleY + mChildRect.top;
-    }
-
-    /**
-     * 解决text居中的问题
-     */
-    public float fixTextY(float y) {
-        Paint.FontMetrics fontMetrics = mTextPaint.getFontMetrics();
-        return (y + (fontMetrics.descent - fontMetrics.ascent) / 2 - fontMetrics.descent);
     }
 
     /**
@@ -592,6 +576,25 @@ public abstract class BaseKLineChartView extends ScrollAndScaleView {
         return (int) (spValue * fontScale + 0.5f);
     }
 
+    public float getMainY(float value) {
+        return (mMainMaxValue - value) * mMainScaleY + mMainRect.top;
+    }
+    public float getVolY(float value) {
+        return (mVolMaxValue - value) * mVolScaleY + mVolRect.top;
+    }
+
+    public float getChildY(float value) {
+        return (mChildMaxValue - value) * mChildScaleY + mChildRect.top;
+    }
+
+    /**
+     * 解决text居中的问题
+     */
+    public float fixTextY(float y) {
+        Paint.FontMetrics fontMetrics = mTextPaint.getFontMetrics();
+        return (y + (fontMetrics.descent - fontMetrics.ascent) / 2 - fontMetrics.descent);
+    }
+
     /**
      * 格式化值
      */
@@ -685,11 +688,11 @@ public abstract class BaseKLineChartView extends ScrollAndScaleView {
                     mMainMinIndex = i;
                 }
             }
-            if (mVolDraw != null) {
+            if (isShowVol && mVolDraw != null) {
                 mVolMaxValue = Math.max(mVolMaxValue, point.vol.getMaxValue());
                 mVolMinValue = Math.min(mVolMinValue, point.vol.getMinValue());
             }
-            if (mChildDraw != null) {
+            if (isShowChild && mChildDraw != null) {
                 mChildMaxValue = Math.max(mChildMaxValue, point.getChildData(mChildDrawType).getMaxValue());
                 mChildMinValue = Math.min(mChildMinValue, point.getChildData(mChildDrawType).getMinValue());
             }
