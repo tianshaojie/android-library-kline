@@ -1,5 +1,6 @@
 package cn.skyui.library.chart.kline.draw;
 
+import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.support.annotation.NonNull;
@@ -22,7 +23,7 @@ public class BollDraw implements IChartDraw<Boll> {
     private Paint mMbPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private Paint mDnPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 
-    public BollDraw(BaseKLineChartView view) {
+    public BollDraw(Context context) {
 
     }
 

@@ -59,12 +59,12 @@ public class KLineChartView extends BaseKLineChartView {
         layoutParams.addRule(CENTER_IN_PARENT);
         addView(mProgressBar, layoutParams);
         mProgressBar.setVisibility(GONE);
-        mVolumeDraw = new VolumeDraw(this);
-        mMACDDraw = new MacdDraw(this);
-        mKDJDraw = new KdjDraw(this);
-        mRSIDraw = new RsiDraw(this);
-        mBOLLDraw = new BollDraw(this);
-        mCandleDraw = new CandleDraw(this);
+        mVolumeDraw = new VolumeDraw(getContext());
+        mMACDDraw = new MacdDraw(getContext());
+        mKDJDraw = new KdjDraw(getContext());
+        mRSIDraw = new RsiDraw(getContext());
+        mBOLLDraw = new BollDraw(getContext());
+        mCandleDraw = new CandleDraw(getContext());
         addChildDraw(ChartEnum.MACD.name(),mMACDDraw);
         addChildDraw(ChartEnum.KDJ.name(), mKDJDraw);
         addChildDraw(ChartEnum.RSI.name(), mRSIDraw);
