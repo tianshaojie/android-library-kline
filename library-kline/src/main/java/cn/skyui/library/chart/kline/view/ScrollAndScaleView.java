@@ -31,11 +31,11 @@ public abstract class ScrollAndScaleView extends RelativeLayout implements
 
     protected float mScaleXMin = 0.3f;
 
-    private boolean mMultipleTouch=false;
+    private boolean mMultipleTouch = false;
 
-    private boolean mScrollEnable=true;
+    private boolean mScrollEnable = true;
 
-    private boolean mScaleEnable=true;
+    private boolean mScaleEnable = true;
 
     public ScrollAndScaleView(Context context) {
         super(context);
@@ -76,7 +76,7 @@ public abstract class ScrollAndScaleView extends RelativeLayout implements
 
     @Override
     public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
-        if (!isLongPress&&!isMultipleTouch()) {
+        if (!isLongPress && !isMultipleTouch()) {
             scrollBy(Math.round(distanceX), 0);
             return true;
         }
@@ -90,7 +90,7 @@ public abstract class ScrollAndScaleView extends RelativeLayout implements
 
     @Override
     public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
-        if (!isTouch()&&isScrollEnable()) {
+        if (!isTouch() && isScrollEnable()) {
             mScroller.fling(mScrollX, 0
                     , Math.round(velocityX / mScaleX), 0,
                     Integer.MIN_VALUE, Integer.MAX_VALUE,
@@ -117,8 +117,7 @@ public abstract class ScrollAndScaleView extends RelativeLayout implements
 
     @Override
     public void scrollTo(int x, int y) {
-        if(!isScrollEnable())
-        {
+        if (!isScrollEnable()) {
             mScroller.forceFinished(true);
             return;
         }
@@ -139,24 +138,22 @@ public abstract class ScrollAndScaleView extends RelativeLayout implements
 
     @Override
     public boolean onScale(ScaleGestureDetector detector) {
-        if(!isScaleEnable())
-        {
+        if (!isScaleEnable()) {
             return false;
         }
-        float oldScale=mScaleX;
+        float oldScale = mScaleX;
         mScaleX *= detector.getScaleFactor();
         if (mScaleX < mScaleXMin) {
             mScaleX = mScaleXMin;
         } else if (mScaleX > mScaleXMax) {
             mScaleX = mScaleXMax;
         } else {
-            onScaleChanged(mScaleX,oldScale);
+            onScaleChanged(mScaleX, oldScale);
         }
         return true;
     }
 
-    protected void onScaleChanged(float scale,float oldScale)
-    {
+    protected void onScaleChanged(float scale, float oldScale) {
         invalidate();
     }
 
@@ -198,7 +195,7 @@ public abstract class ScrollAndScaleView extends RelativeLayout implements
                 invalidate();
                 break;
         }
-        mMultipleTouch=event.getPointerCount()>1;
+        mMultipleTouch = event.getPointerCount() > 1;
         this.mDetector.onTouchEvent(event);
         this.mScaleDetector.onTouchEvent(event);
         return true;
@@ -250,6 +247,7 @@ public abstract class ScrollAndScaleView extends RelativeLayout implements
 
     /**
      * 是否是多指触控
+     *
      * @return
      */
     public boolean isMultipleTouch() {

@@ -6,18 +6,12 @@ import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 
-import cn.skyui.library.chart.kline.demo.R;
-
-import cn.skyui.library.chart.kline.demo.ExampleActivity;
-import cn.skyui.library.chart.kline.demo.LoadMoreActivity;
-import cn.skyui.library.chart.kline.demo.MinuteChartActivity;
-
 public class MainActivity extends AppCompatActivity implements View.OnClickListener{
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        findViewById(R.id.btn_style1).performClick();
+        findViewById(R.id.btn_style).performClick();
     }
 
     @Override
@@ -25,6 +19,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         Intent intent=new Intent();
         switch (v.getId())
         {
+            case R.id.btn_style:
+                intent.setClass(this, MyExampleActivity.class);
+                break;
             case R.id.btn_style1:
                 intent.setClass(this, ExampleActivity.class);
                 intent.putExtra("type",0);

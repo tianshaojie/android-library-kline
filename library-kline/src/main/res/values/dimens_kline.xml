@@ -1,0 +1,4 @@
+<resources>
+    <dimen name="kline_first_child_rect_height">70dp</dimen>
+    <dimen name="kline_second_child_rect_height">70dp</dimen>
+</resources>

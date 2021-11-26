@@ -85,7 +85,7 @@ public class LoadMoreActivity extends AppCompatActivity implements KLineChartVie
         new Thread(new Runnable() {
             @Override
             public void run() {
-                final List<KLine> data = DataRequest.getData(LoadMoreActivity.this, mAdapter.getCount(), 200);
+                final List<KLine> data = DataRequest.getData(LoadMoreActivity.this, mAdapter.getCount(), 100);
                 try {
                     Thread.sleep(1000);
                 } catch (InterruptedException e) {

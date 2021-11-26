@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="KLineView">
+
+        <attr name="kv_is_show_first_child_rect" format="boolean"/>
+        <attr name="kv_is_show_second_child_rect" format="boolean"/>
+        <attr name="kv_first_child_rect_height" format="dimension"/>
+        <attr name="kv_second_child_rect_height" format="dimension"/>
+
+
+    </declare-styleable>
+</resources>

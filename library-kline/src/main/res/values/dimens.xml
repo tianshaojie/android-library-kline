@@ -1,7 +1,7 @@
 <resources>
     <dimen name="chart_top_padding">12dp</dimen>
     <dimen name="chart_bottom_padding">15dp</dimen>
-    <dimen name="child_top_padding">12dp</dimen>
+    <dimen name="child_top_padding">15dp</dimen>
 
     <dimen name="chart_line_width">1dp</dimen>
     <dimen name="chart_grid_line_width">1dp</dimen>
