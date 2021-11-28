@@ -13,8 +13,8 @@ import android.widget.RelativeLayout;
  * 可以滑动和放大的view
  */
 public abstract class ScrollAndScaleView extends RelativeLayout implements
-        GestureDetector.OnGestureListener,
-        ScaleGestureDetector.OnScaleGestureListener {
+        GestureDetector.OnGestureListener, ScaleGestureDetector.OnScaleGestureListener {
+
     protected int mScrollX = 0;
     protected GestureDetectorCompat mDetector;
     protected ScaleGestureDetector mScaleDetector;
@@ -91,8 +91,7 @@ public abstract class ScrollAndScaleView extends RelativeLayout implements
     @Override
     public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
         if (!isTouch() && isScrollEnable()) {
-            mScroller.fling(mScrollX, 0
-                    , Math.round(velocityX / mScaleX), 0,
+            mScroller.fling(mScrollX, 0, Math.round(velocityX / mScaleX), 0,
                     Integer.MIN_VALUE, Integer.MAX_VALUE,
                     0, 0);
         }
@@ -185,10 +184,6 @@ public abstract class ScrollAndScaleView extends RelativeLayout implements
                 invalidate();
                 break;
             case MotionEvent.ACTION_UP:
-                isLongPress = false;
-                touch = false;
-                invalidate();
-                break;
             case MotionEvent.ACTION_CANCEL:
                 isLongPress = false;
                 touch = false;

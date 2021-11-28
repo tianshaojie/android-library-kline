@@ -34,8 +34,7 @@ public class MacdDraw implements IChartDraw<Macd> {
     private float mMACDWidth = 0;
     private IValueFormatter formatter;
 
-    public MacdDraw(BaseKLineChartView view) {
-        Context context = view.getContext();
+    public MacdDraw(Context context) {
         mRedPaint.setColor(ContextCompat.getColor(context, R.color.chart_red));
         mGreenPaint.setColor(ContextCompat.getColor(context, R.color.chart_green));
         formatter = KLine.getValueFormatter(ChartEnum.MACD.name());

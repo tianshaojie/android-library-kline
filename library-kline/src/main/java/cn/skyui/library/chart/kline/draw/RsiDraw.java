@@ -1,5 +1,6 @@
 package cn.skyui.library.chart.kline.draw;
 
+import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.support.annotation.NonNull;
@@ -22,7 +23,7 @@ public class RsiDraw implements IChartDraw<Rsi> {
     private Paint mRSI2Paint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private Paint mRSI3Paint = new Paint(Paint.ANTI_ALIAS_FLAG);
 
-    public RsiDraw(BaseKLineChartView view) {
+    public RsiDraw(Context context) {
 
     }
 

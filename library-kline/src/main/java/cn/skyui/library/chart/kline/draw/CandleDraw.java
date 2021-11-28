@@ -34,8 +34,7 @@ public class CandleDraw implements IChartDraw<Candle> {
 
     private boolean mCandleSolid = true;
 
-    public CandleDraw(BaseKLineChartView view) {
-        Context context = view.getContext();
+    public CandleDraw(Context context) {
         mContext = context;
         mRedPaint.setColor(ContextCompat.getColor(context, R.color.chart_red));
         mGreenPaint.setColor(ContextCompat.getColor(context, R.color.chart_green));
