@@ -5,6 +5,7 @@ import android.database.DataSetObserver;
 import cn.skyui.library.chart.kline.data.model.KLine;
 
 import java.util.Date;
+import java.util.List;
 
 
 /**
@@ -26,6 +27,8 @@ public interface IAdapter {
      * @return 数据实体
      */
     KLine getItem(int position);
+
+    List<KLine> getItems();
 
     /**
      * 通过序号获取时间

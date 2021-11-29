@@ -29,6 +29,11 @@ public class KLineChartAdapter extends BaseKLineChartAdapter {
     }
 
     @Override
+    public List<KLine> getItems() {
+        return datas;
+    }
+
+    @Override
     public Date getDate(int position) {
         try {
             String s = datas.get(position).date;

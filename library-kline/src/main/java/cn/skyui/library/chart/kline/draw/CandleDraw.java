@@ -90,7 +90,7 @@ public class CandleDraw implements IChartDraw<Candle> {
         if (open > close) {
             //实心
             if (mCandleSolid) {
-                canvas.drawRect(x - r, close, x + r, open, mRedPaint);
+                canvas.drawRect(x   - r, close, x + r, open, mRedPaint);
                 canvas.drawRect(x - lineR, high, x + lineR, low, mRedPaint);
             } else {
                 mRedPaint.setStrokeWidth(mCandleLineWidth);

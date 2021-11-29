@@ -5,6 +5,8 @@ import android.content.Context;
 import android.content.res.TypedArray;
 import android.database.DataSetObserver;
 import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
 import android.graphics.Rect;
 import android.support.annotation.DimenRes;
 import android.support.v4.view.GestureDetectorCompat;
@@ -13,15 +15,13 @@ import android.view.ScaleGestureDetector;
 
 import cn.skyui.library.chart.kline.R;
 import cn.skyui.library.chart.kline.adapter.KLineChartAdapter;
-import cn.skyui.library.chart.kline.base.IAdapter;
 import cn.skyui.library.chart.kline.data.model.KLine;
-import cn.skyui.library.chart.kline.draw.CandleDraw;
 import cn.skyui.library.chart.kline.draw.v2.CandleDrawV2;
 
 /**
  * k线图
  */
-public class KLineView extends ScrollAndScaleView{
+public class KLineViewV2 extends ScrollAndScaleView {
 
     KLineChartAdapter mAdapter;
 
@@ -36,6 +36,8 @@ public class KLineView extends ScrollAndScaleView{
     private ValueAnimator mAnimator;
     private long mAnimationDuration = 500;
 
+    private Rect mKLineRect;
+    private Paint mGridPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 
     private Rect mCandleRect;
     private CandleDrawV2 mCandleDraw;
@@ -48,18 +50,31 @@ public class KLineView extends ScrollAndScaleView{
     private float mSecondChildRectHeight;
     private Rect mSecondChildRect;
 
-    public KLineView(Context context) {
+    private KChartRefreshListener mRefreshListener;
+
+    public interface KChartRefreshListener {
+        void onLoadMore(KLineViewV2 chart);
+    }
+
+    /**
+     * 设置刷新监听
+     */
+    public void setRefreshListener(KChartRefreshListener refreshListener) {
+        mRefreshListener = refreshListener;
+    }
+
+    public KLineViewV2(Context context) {
         super(context);
         init();
     }
 
-    public KLineView(Context context, AttributeSet attrs) {
+    public KLineViewV2(Context context, AttributeSet attrs) {
         super(context, attrs);
         initAttrs(attrs);
         init();
     }
 
-    public KLineView(Context context, AttributeSet attrs, int defStyleAttr) {
+    public KLineViewV2(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         initAttrs(attrs);
         init();
@@ -70,8 +85,8 @@ public class KLineView extends ScrollAndScaleView{
         if (array != null) {
             try {
                 setShowFirstChildRect(array.getBoolean(R.styleable.KLineView_kv_is_show_first_child_rect, true));
-                setShowSecondChildRect(array.getBoolean(R.styleable.KLineView_kv_is_show_second_child_rect, true));
                 setFirstChildRectHeight(array.getDimension(R.styleable.KLineView_kv_first_child_rect_height, getDimension(R.dimen.kline_first_child_rect_height)));
+                setShowSecondChildRect(array.getBoolean(R.styleable.KLineView_kv_is_show_second_child_rect, true));
                 setSecondChildRectHeight(array.getDimension(R.styleable.KLineView_kv_second_child_rect_height, getDimension(R.dimen.kline_second_child_rect_height)));
             } catch (Exception e) {
                 e.printStackTrace();
@@ -94,6 +109,13 @@ public class KLineView extends ScrollAndScaleView{
                 invalidate();
             }
         });
+
+        // 设置Paint为无锯齿
+        int strokeWidth = 2;
+        mGridPaint.setStrokeWidth(strokeWidth);
+        mGridPaint.setAntiAlias(true);
+        mGridPaint.setColor(Color.RED);
+        mGridPaint.setStyle(Paint.Style.STROKE);
     }
 
     private void initView() {
@@ -116,10 +138,10 @@ public class KLineView extends ScrollAndScaleView{
         this.mWidth = w;
         this.mHeight = h;
         float oneThirdHeight = mHeight / 3.0f;
-        if(mFirstChildRectHeight > oneThirdHeight) {
+        if (mFirstChildRectHeight > oneThirdHeight) {
             mFirstChildRectHeight = oneThirdHeight;
         }
-        if(mSecondChildRectHeight > oneThirdHeight) {
+        if (mSecondChildRectHeight > oneThirdHeight) {
             mSecondChildRectHeight = oneThirdHeight;
         }
         initRect();
@@ -127,28 +149,34 @@ public class KLineView extends ScrollAndScaleView{
     }
 
     private void initRect() {
-        if(!isShowFirstChildRect && !isShowSecondChildRect) {
+        mKLineRect = new Rect(1, 1, mWidth-1, mHeight-1);
+        if (!isShowFirstChildRect && !isShowSecondChildRect) {
             mCandleRect = new Rect(0, 0, mWidth, mHeight);
-        } else if(isShowFirstChildRect && isShowSecondChildRect) {
+        } else if (isShowFirstChildRect && isShowSecondChildRect) {
             mCandleRect = new Rect(0, 0, mWidth, (int) (mHeight - mFirstChildRectHeight - mSecondChildRectHeight));
             mFirstChildRect = new Rect(0, mCandleRect.bottom, mWidth, (int) (mCandleRect.bottom + mFirstChildRectHeight));
             mSecondChildRect = new Rect(0, mFirstChildRect.bottom, mWidth, (int) (mFirstChildRect.bottom + mSecondChildRectHeight));
-        } else {
+        } else if(isShowFirstChildRect) {
             mCandleRect = new Rect(0, 0, mWidth, (int) (mHeight - mFirstChildRectHeight));
             mFirstChildRect = new Rect(0, mCandleRect.bottom, mWidth, (int) (mCandleRect.bottom + mFirstChildRectHeight));
+        } else {
+            mCandleRect = new Rect(0, 0, mWidth, (int) (mHeight - mFirstChildRectHeight));
+            mFirstChildRect = new Rect(0, mCandleRect.bottom, mWidth, (int) (mCandleRect.bottom + mSecondChildRectHeight));
         }
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-        if (mWidth == 0 || mCandleRect.height() == 0) {
+        if (mWidth == 0 || mCandleRect.height() == 0 || mItemCount == 0) {
             return;
         }
-//        mCandleDraw.calculateValue();
+        mCandleDraw.calculateValue();
         canvas.save();
         canvas.scale(1, 1);
+        canvas.drawRect(mKLineRect, mGridPaint);
         mCandleDraw.drawGird(canvas);
+//        mCandleDraw.drawCandle();
         canvas.restore();
     }
 
@@ -189,6 +217,7 @@ public class KLineView extends ScrollAndScaleView{
     }
 
     private int mItemCount;
+
     /**
      * 重新计算并刷新线条
      */

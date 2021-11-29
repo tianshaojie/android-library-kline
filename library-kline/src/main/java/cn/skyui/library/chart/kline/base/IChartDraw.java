@@ -15,13 +15,13 @@ public interface IChartDraw<T> {
     /**
      * 需要滑动 物体draw方法
      *
-     * @param canvas    canvas
-     * @param view      k线图View
-     * @param position  当前点的位置
      * @param lastPoint 上一个点
      * @param curPoint  当前点
      * @param lastX     上一个点的x坐标
      * @param curX      当前点的X坐标
+     * @param canvas    canvas
+     * @param view      k线图View
+     * @param position  当前点的位置
      */
     void drawTranslated(@Nullable T lastPoint, @NonNull T curPoint, float lastX, float curX, @NonNull Canvas canvas, @NonNull BaseKLineChartView view, int position);
 

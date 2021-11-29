@@ -2,6 +2,7 @@ package cn.skyui.library.chart.kline.draw.v2;
 
 import android.content.Context;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.support.annotation.NonNull;
@@ -13,6 +14,8 @@ import cn.skyui.library.chart.kline.base.IChartData;
 import cn.skyui.library.chart.kline.data.ChartEnum;
 import cn.skyui.library.chart.kline.data.model.Candle;
 import cn.skyui.library.chart.kline.data.model.KLine;
+import cn.skyui.library.chart.kline.view.BaseKLineChartView;
+import cn.skyui.library.chart.kline.view.KLineViewV2;
 
 /**
  * 主图的实现类
@@ -31,12 +34,16 @@ public abstract class CandleDrawV2 {
     private float mMainScaleY = 1;
 
     private Rect mRect;
-    private int mWidth;
+    private int mRectWidth;
+
+    private int mStartIndex = 0;
+    private int mStopIndex = 0;
 
     private float mMainMaxValue = Float.MAX_VALUE;
     private float mMainMinValue = Float.MIN_VALUE;
     private float mMainHighMaxValue = 0;
     private float mMainLowMinValue = 0;
+
     private int mMainMaxIndex = 0;
     private int mMainMinIndex = 0;
 
@@ -55,11 +62,19 @@ public abstract class CandleDrawV2 {
     public CandleDrawV2(Context context, Rect rect) {
         mContext = context;
         mRect = rect;
-        mWidth = mRect.width();
+        mGridPaint.setAntiAlias(true);
+        mGridPaint.setColor(Color.GRAY);
+        mGridPaint.setStyle(Paint.Style.STROKE);
+
+        mRectWidth = mRect.width();
         mRedPaint.setColor(ContextCompat.getColor(context, R.color.chart_red));
         mGreenPaint.setColor(ContextCompat.getColor(context, R.color.chart_green));
-        mTopPadding = (int) context.getResources().getDimension(R.dimen.chart_top_padding);
-        mBottomPadding = (int) context.getResources().getDimension(R.dimen.chart_bottom_padding);
+
+//        mTopPadding = (int) context.getResources().getDimension(R.dimen.chart_top_padding);
+//        mBottomPadding = (int) context.getResources().getDimension(R.dimen.chart_bottom_padding);
+
+        mCandleLineWidth = (int) context.getResources().getDimension(R.dimen.chart_candle_width);
+        mCandleLineWidth = (int) context.getResources().getDimension(R.dimen.chart_candle_line_width);
     }
 
     /**
@@ -68,22 +83,21 @@ public abstract class CandleDrawV2 {
      * @param canvas
      */
     public void drawGird(Canvas canvas) {
-        //-----------------------TopPadding横线------------------------
-        canvas.drawLine(0, mRect.top, mRect.width(), mRect.top, mGridPaint);
-        //-----------------------CandleGrid横线--------------------
-        float rowSpace = (mRect.height() - mTopPadding - mBottomPadding) / GRID_ROWS;
+        float rowSpace = mRect.height() / GRID_ROWS;
         for (int i = 0; i <= GRID_ROWS; i++) {
-            canvas.drawLine(0, rowSpace * i + mRect.top + mTopPadding, mRect.width(), rowSpace * i + mRect.top + mTopPadding, mGridPaint);
+            canvas.drawLine(0, rowSpace * i + mRect.top, mRect.width(), rowSpace * i + mRect.top, mGridPaint);
         }
-        //-----------------------两侧竖线--------------------
-        canvas.drawLine(0, 0, 0, mRect.height(), mGridPaint);
-        canvas.drawLine(mRect.width(), 0, mRect.width(), mRect.height(), mGridPaint);
-        //-----------------------BottomPadding横线------------------------
-        canvas.drawLine(0, mRect.height(), mRect.width(), mRect.height(), mGridPaint);
-    }
 
-    private int mStartIndex = 0;
-    private int mStopIndex = 0;
+//        //-----------------------TopPadding横线------------------------
+//        canvas.drawLine(0, mRect.top, mRect.width(), mRect.top, mGridPaint);
+//        //-----------------------CandleGrid横线--------------------
+//        float rowSpace = (mRect.height() - mTopPadding - mBottomPadding) / GRID_ROWS;
+//        for (int i = 0; i <= GRID_ROWS; i++) {
+//            canvas.drawLine(0, rowSpace * i + mRect.top + mTopPadding, mRect.width(), rowSpace * i + mRect.top + mTopPadding, mGridPaint);
+//        }
+//        //-----------------------BottomPadding横线------------------------
+//        canvas.drawLine(0, mRect.height(), mRect.width(), mRect.height(), mGridPaint);
+    }
 
     /**
      * 计算当前的显示区域
@@ -91,8 +105,11 @@ public abstract class CandleDrawV2 {
     public void calculateValue() {
         mMainMaxValue = Float.MIN_VALUE;
         mMainMinValue = Float.MAX_VALUE;
-        mStartIndex = indexOfTranslateX(xToTranslateX(0));
-        mStopIndex = indexOfTranslateX(xToTranslateX(mWidth));
+
+        // 一屏显示多少根蜡烛图是固定的
+        float candleCount = mRectWidth / mCandleLineWidth;
+        mStartIndex = getCount() - (int) candleCount - 1;
+        mStopIndex = getCount() - 1;
 
         mMainMaxIndex = mStartIndex;
         mMainMinIndex = mStartIndex;
@@ -101,7 +118,7 @@ public abstract class CandleDrawV2 {
 
 
         for (int i = mStartIndex; i <= mStopIndex; i++) {
-            KLine point = (KLine) getItem(i);
+            KLine point = getItem(i);
             mMainMaxValue = Math.max(mMainMaxValue, point.getMaxValue());
             mMainMinValue = Math.min(mMainMinValue, point.getMinValue());
             if (mMainHighMaxValue != Math.max(mMainHighMaxValue, point.high)) {
@@ -127,6 +144,48 @@ public abstract class CandleDrawV2 {
         }
 
         mMainScaleY = mRect.height() * 1f / (mMainMaxValue - mMainMinValue);
+    }
+
+    /**
+     * 画Candle
+     *
+     * @param canvas
+     * @param x      x轴坐标
+     * @param high   最高价
+     * @param low    最低价
+     * @param open   开盘价
+     * @param close  收盘价
+     */
+    public void drawCandle(KLineViewV2 view, Canvas canvas, float x, float high, float low, float open, float close) {
+        high = getMainY(high);
+        low = getMainY(low);
+        open = getMainY(open);
+        close = getMainY(close);
+        float r = mCandleWidth / 2;
+        float lineR = mCandleLineWidth / 2;
+        if (open > close) {
+            //实心
+            if (mCandleSolid) {
+                canvas.drawRect(x   - r, close, x + r, open, mRedPaint);
+                canvas.drawRect(x - lineR, high, x + lineR, low, mRedPaint);
+            } else {
+                mRedPaint.setStrokeWidth(mCandleLineWidth);
+                canvas.drawLine(x, high, x, close, mRedPaint);
+                canvas.drawLine(x, open, x, low, mRedPaint);
+                canvas.drawLine(x - r + lineR, open, x - r + lineR, close, mRedPaint);
+                canvas.drawLine(x + r - lineR, open, x + r - lineR, close, mRedPaint);
+                mRedPaint.setStrokeWidth(mCandleLineWidth * view.getScaleX());
+                canvas.drawLine(x - r, open, x + r, open, mRedPaint);
+                canvas.drawLine(x - r, close, x + r, close, mRedPaint);
+            }
+
+        } else if (open < close) {
+            canvas.drawRect(x - r, open, x + r, close, mGreenPaint);
+            canvas.drawRect(x - lineR, high, x + lineR, low, mGreenPaint);
+        } else {
+            canvas.drawRect(x - r, open, x + r, close + 1, mRedPaint);
+            canvas.drawRect(x - lineR, high, x + lineR, low, mRedPaint);
+        }
     }
 
     public abstract KLine getItem(int position);
@@ -196,7 +255,7 @@ public abstract class CandleDrawV2 {
      * @return
      */
     private float getMinTranslateX() {
-        return -mDataLen + mWidth / mScaleX - mCandleWidth / 2;
+        return -mDataLen + mRectWidth / mScaleX - mCandleWidth / 2;
     }
 
     /**

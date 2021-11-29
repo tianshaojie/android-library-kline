@@ -257,13 +257,14 @@ public abstract class BaseKLineChartView extends ScrollAndScaleView {
     private void drawK(Canvas canvas) {
         //保存之前的平移，缩放
         canvas.save();
-        canvas.translate(mTranslateX * mScaleX, 0);
-        canvas.scale(mScaleX, 1);
+        canvas.translate(mTranslateX * mScaleX, 0); // mTranslateX * mScaleX = -1131
+        canvas.scale(mScaleX, 1); // mScaleX = 1
+        // 51, 100
         for (int i = mStartIndex; i <= mStopIndex; i++) {
-            KLine currentPoint = getItem(i);
-            float currentPointX = getX(i);
-            KLine lastPoint = i == 0 ? currentPoint : getItem(i - 1);
-            float lastX = i == 0 ? currentPointX : getX(i - 1);
+            KLine currentPoint = getItem(i); // data.get(51)
+            float currentPointX = getX(i); // 1122
+            KLine lastPoint = i == 0 ? currentPoint : getItem(i - 1); // data.get(50)
+            float lastX = i == 0 ? currentPointX : getX(i - 1); // 1100
             if (mMainDraw != null) {
                 mMainDraw.drawTranslated(lastPoint, currentPoint, lastX, currentPointX, canvas, this, i);
             }

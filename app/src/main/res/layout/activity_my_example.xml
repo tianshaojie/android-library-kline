@@ -6,12 +6,12 @@
     android:fitsSystemWindows="true"
     android:orientation="vertical">
 
-    <cn.skyui.library.chart.kline.view.KLineView
+    <cn.skyui.library.chart.kline.view.KLineViewV2
         android:id="@+id/kline_view"
         android:layout_marginLeft="10dp"
         android:layout_marginRight="10dp"
         android:layout_marginTop="50dp"
         android:layout_width="match_parent"
-        android:layout_height="450dp"/>
+        android:layout_height="400dp"/>
 
 </RelativeLayout>
