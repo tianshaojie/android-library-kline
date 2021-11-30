@@ -176,7 +176,7 @@ public class KLineViewV2 extends ScrollAndScaleView {
         canvas.scale(1, 1);
         canvas.drawRect(mKLineRect, mGridPaint);
         mCandleDraw.drawGird(canvas);
-//        mCandleDraw.drawCandle();
+        mCandleDraw.drawCandle(canvas);
         canvas.restore();
     }
 

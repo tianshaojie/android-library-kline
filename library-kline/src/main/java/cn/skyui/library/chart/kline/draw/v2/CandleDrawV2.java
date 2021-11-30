@@ -73,7 +73,7 @@ public abstract class CandleDrawV2 {
 //        mTopPadding = (int) context.getResources().getDimension(R.dimen.chart_top_padding);
 //        mBottomPadding = (int) context.getResources().getDimension(R.dimen.chart_bottom_padding);
 
-        mCandleLineWidth = (int) context.getResources().getDimension(R.dimen.chart_candle_width);
+        mCandleWidth = (int) context.getResources().getDimension(R.dimen.chart_candle_width);
         mCandleLineWidth = (int) context.getResources().getDimension(R.dimen.chart_candle_line_width);
     }
 
@@ -107,7 +107,7 @@ public abstract class CandleDrawV2 {
         mMainMinValue = Float.MAX_VALUE;
 
         // 一屏显示多少根蜡烛图是固定的
-        float candleCount = mRectWidth / mCandleLineWidth;
+        float candleCount = mRectWidth / mCandleWidth;
         mStartIndex = getCount() - (int) candleCount - 1;
         mStopIndex = getCount() - 1;
 
@@ -115,7 +115,6 @@ public abstract class CandleDrawV2 {
         mMainMinIndex = mStartIndex;
         mMainHighMaxValue = Float.MIN_VALUE;
         mMainLowMinValue = Float.MAX_VALUE;
-
 
         for (int i = mStartIndex; i <= mStopIndex; i++) {
             KLine point = getItem(i);
@@ -146,47 +145,25 @@ public abstract class CandleDrawV2 {
         mMainScaleY = mRect.height() * 1f / (mMainMaxValue - mMainMinValue);
     }
 
-    /**
-     * 画Candle
-     *
-     * @param canvas
-     * @param x      x轴坐标
-     * @param high   最高价
-     * @param low    最低价
-     * @param open   开盘价
-     * @param close  收盘价
-     */
-    public void drawCandle(KLineViewV2 view, Canvas canvas, float x, float high, float low, float open, float close) {
-        high = getMainY(high);
-        low = getMainY(low);
-        open = getMainY(open);
-        close = getMainY(close);
-        float r = mCandleWidth / 2;
-        float lineR = mCandleLineWidth / 2;
-        if (open > close) {
-            //实心
-            if (mCandleSolid) {
-                canvas.drawRect(x   - r, close, x + r, open, mRedPaint);
-                canvas.drawRect(x - lineR, high, x + lineR, low, mRedPaint);
-            } else {
-                mRedPaint.setStrokeWidth(mCandleLineWidth);
-                canvas.drawLine(x, high, x, close, mRedPaint);
-                canvas.drawLine(x, open, x, low, mRedPaint);
-                canvas.drawLine(x - r + lineR, open, x - r + lineR, close, mRedPaint);
-                canvas.drawLine(x + r - lineR, open, x + r - lineR, close, mRedPaint);
-                mRedPaint.setStrokeWidth(mCandleLineWidth * view.getScaleX());
-                canvas.drawLine(x - r, open, x + r, open, mRedPaint);
-                canvas.drawLine(x - r, close, x + r, close, mRedPaint);
-            }
-
-        } else if (open < close) {
-            canvas.drawRect(x - r, open, x + r, close, mGreenPaint);
-            canvas.drawRect(x - lineR, high, x + lineR, low, mGreenPaint);
-        } else {
-            canvas.drawRect(x - r, open, x + r, close + 1, mRedPaint);
-            canvas.drawRect(x - lineR, high, x + lineR, low, mRedPaint);
+    public void drawCandle(Canvas canvas) {
+        //保存之前的平移，缩放
+        canvas.save();
+//        canvas.translate(mTranslateX * mScaleX, 0); // mTranslateX * mScaleX = -1131
+        canvas.scale(mScaleX, 1); // mScaleX = 1
+        // 51, 100
+        int index = 1;
+        for (int i = mStartIndex; i <= mStopIndex; i++) {
+            KLine currentPoint = getItem(i); // data.get(51)
+            float currentPointX = getX(index); // 1122
+            KLine lastPoint = i == 0 ? currentPoint : getItem(i - 1); // data.get(50)
+            float lastX = i == 0 ? currentPointX : getX(index - 1); // 1100
+            onDraw(lastPoint, currentPoint, lastX, currentPointX, canvas);
+            index++;
         }
+        //还原 平移缩放
+        canvas.restore();
     }
+
 
     public abstract KLine getItem(int position);
 
