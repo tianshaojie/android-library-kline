@@ -224,7 +224,7 @@ public class KLineViewV2 extends ScrollAndScaleView {
     public void notifyChanged() {
         if (mItemCount != 0) {
             mDataLen = (mItemCount - 1) * mPointWidth;
-            mCandleDraw.setDataLen(mDataLen);
+            // mCandleDraw.setDataLen(mDataLen);
             checkAndFixScrollX();
             setTranslateXFromScrollX(mScrollX);
         } else {

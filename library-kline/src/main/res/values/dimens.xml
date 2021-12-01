@@ -8,6 +8,7 @@
 
     <dimen name="chart_candle_line_width">1dp</dimen>
     <dimen name="chart_candle_width">6dp</dimen>
+    <dimen name="chart_candle_padding">2dp</dimen>
     <dimen name="chart_point_width">8dp</dimen>
 
     <dimen name="chart_text_size">10sp</dimen>

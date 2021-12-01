@@ -45,7 +45,7 @@ public class MyExampleActivity extends AppCompatActivity {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                final List<KLine> data = DataRequest.getData(MyExampleActivity.this, mAdapter.getCount(), 1000);
+                final List<KLine> data = DataRequest.getData(MyExampleActivity.this, mAdapter.getCount(), 300);
                 try {
                     Thread.sleep(1000);
                 } catch (InterruptedException e) {
