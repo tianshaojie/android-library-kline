@@ -171,12 +171,12 @@ public class KLineViewV2 extends ScrollAndScaleView {
         if (mWidth == 0 || mCandleRect.height() == 0 || mItemCount == 0) {
             return;
         }
-        mCandleDraw.calculateValue();
+        mCandleDraw.calculateValue(mScrollX);
         canvas.save();
         canvas.scale(1, 1);
         canvas.drawRect(mKLineRect, mGridPaint);
         mCandleDraw.drawGird(canvas);
-        mCandleDraw.drawCandle(canvas);
+        mCandleDraw.drawCandle(canvas, mScrollX);
         canvas.restore();
     }
 

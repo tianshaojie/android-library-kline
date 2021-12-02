@@ -88,14 +88,22 @@ public abstract class CandleDrawV2 {
     /**
      * 计算当前的显示区域
      */
-    public void calculateValue() {
+    public void calculateValue(int scrollX) {
         mMainMaxValue = Float.MIN_VALUE;
         mMainMinValue = Float.MAX_VALUE;
 
         // 一屏显示多少根蜡烛图是固定的
-        float candleCount = mRectWidth / (mCandleWidth + mCandlePadding);
-        mStartIndex = getCount() - (int) candleCount - 1;
-        mStopIndex = getCount() - 1;
+        float candleCount = (mRectWidth + scrollX) / (mCandleWidth + mCandlePadding); // 屏幕内+屏幕外右侧画布区域的蜡烛图梳理
+        float inRectCandleCount = mRectWidth / (mCandleWidth + mCandlePadding); // 屏幕内的蜡烛图梳理
+        float scrollOutCount = scrollX /  (mCandleWidth + mCandlePadding); // 屏幕外的蜡烛图梳理
+        mStartIndex = getCount() - (int) candleCount;
+        if(mStartIndex <= 0) {
+            mStartIndex = 0;
+        }
+        mStopIndex = getCount() - (int) scrollOutCount - 1;
+        if(mStopIndex <= inRectCandleCount) {
+            mStopIndex = (int) (inRectCandleCount);
+        }
 
         mMainMaxIndex = mStartIndex;
         mMainMinIndex = mStartIndex;
@@ -131,26 +139,18 @@ public abstract class CandleDrawV2 {
         mMainScaleY = mRect.height() * 1f / (mMainMaxValue - mMainMinValue);
     }
 
-    public void drawCandle(Canvas canvas) {
+    public void drawCandle(Canvas canvas, int scrollX) {
         canvas.save();
         canvas.scale(mScaleX, 1);
         int index = 1;
         for (int i = mStopIndex; i >= mStartIndex; i--) {
             KLine currentPoint = getItem(i);
-            float currentPointX = mRectWidth - getX(index) + mCandlePadding;
+            float currentPointX = mRectWidth - getX(index) + mCandlePadding + scrollX;
             KLine prevPoint = i == 0 ? currentPoint : getItem(i - 1);
-            float prevX = i == 0 ? currentPointX : mRectWidth - getX(index + 1) + mCandlePadding;
+            float prevX = i == 0 ? currentPointX : mRectWidth - getX(index + 1) + mCandlePadding + scrollX;
             onDraw(prevPoint, currentPoint, prevX, currentPointX, canvas);
             index++;
         }
-//        for (int i = mStartIndex; i <= mStopIndex; i++) {
-//            KLine currentPoint = getItem(i);
-//            float currentPointX = getX(index);
-//            KLine prevPoint = i == 0 ? currentPoint : getItem(i - 1);
-//            float lastX = i == 0 ? currentPointX : getX(index - 1);
-//            onDraw(prevPoint, currentPoint, lastX, currentPointX, canvas);
-//            index++;
-//        }
         //还原 平移缩放
         canvas.restore();
     }
