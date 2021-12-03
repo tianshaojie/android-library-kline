@@ -79,7 +79,6 @@ public abstract class CandleDrawV2 {
         mRectWidth = mRect.width();
     }
 
-
     /**
      * 画表格
      *
@@ -266,7 +265,7 @@ public abstract class CandleDrawV2 {
      * @param position 索引值
      * @return X坐标
      */
-    private float getX(int position) {
+    public float getX(int position) {
         return position * (mCandleWidth + mCandlePadding);
     }
 
@@ -351,6 +350,22 @@ public abstract class CandleDrawV2 {
 
     public void setScaleX(float mScaleX) {
         this.mScaleX = mScaleX;
+    }
+
+    public int getStartIndex() {
+        return mStartIndex;
+    }
+
+    public void setStartIndex(int mStartIndex) {
+        this.mStartIndex = mStartIndex;
+    }
+
+    public int getStopIndex() {
+        return mStopIndex;
+    }
+
+    public void setStopIndex(int mStopIndex) {
+        this.mStopIndex = mStopIndex;
     }
 
 }
