@@ -14,8 +14,6 @@ import cn.skyui.library.chart.kline.base.IChartData;
 import cn.skyui.library.chart.kline.data.ChartEnum;
 import cn.skyui.library.chart.kline.data.model.Candle;
 import cn.skyui.library.chart.kline.data.model.KLine;
-import cn.skyui.library.chart.kline.view.BaseKLineChartView;
-import cn.skyui.library.chart.kline.view.KLineViewV2;
 
 /**
  * 主图的实现类
@@ -32,6 +30,7 @@ public abstract class CandleDrawV2 {
 
     private Rect mRect;
     private int mRectWidth;
+
     private float mCandleWidth = 0;
     private float mCandlePadding = 0;
     private float mCandleLineWidth = 0;
@@ -73,6 +72,10 @@ public abstract class CandleDrawV2 {
         mCandleLineWidth = (int) context.getResources().getDimension(R.dimen.chart_candle_line_width);
     }
 
+    public abstract KLine getItem(int position);
+
+    public abstract int getCount();
+
     /**
      * 画表格
      *
@@ -86,23 +89,30 @@ public abstract class CandleDrawV2 {
     }
 
     /**
-     * 计算当前的显示区域
+     * 计算当前显示区域，正在使用的数据块的start/end索引范围
+     * 主要关注X轴的滑动，左侧为画布原点
+     * 一屏显示多少根蜡烛图是固定的
      */
     public void calculateValue(int scrollX) {
         mMainMaxValue = Float.MIN_VALUE;
         mMainMinValue = Float.MAX_VALUE;
 
-        // 一屏显示多少根蜡烛图是固定的
-        float candleCount = (mRectWidth + scrollX) / (mCandleWidth + mCandlePadding); // 屏幕内+屏幕外右侧画布区域的蜡烛图梳理
-        float inRectCandleCount = mRectWidth / (mCandleWidth + mCandlePadding); // 屏幕内的蜡烛图梳理
-        float scrollOutCount = scrollX /  (mCandleWidth + mCandlePadding); // 屏幕外的蜡烛图梳理
-        mStartIndex = getCount() - (int) candleCount;
-        if(mStartIndex <= 0) {
+        // 屏幕内+屏幕外右侧画布区域的蜡烛图梳理
+        float candleCount = (mRectWidth + scrollX) / (mCandleWidth + mCandlePadding);
+        // 屏幕内的蜡烛图梳理
+        float inRectCandleCount = mRectWidth / (mCandleWidth + mCandlePadding);
+        // 屏幕外的蜡烛图梳理
+        float scrollOutCount = scrollX / (mCandleWidth + mCandlePadding);
+        mStartIndex = getCount() - (int) candleCount - 1;
+        if (mStartIndex <= 0) {
             mStartIndex = 0;
         }
         mStopIndex = getCount() - (int) scrollOutCount - 1;
-        if(mStopIndex <= inRectCandleCount) {
+        if (mStopIndex <= inRectCandleCount) {
             mStopIndex = (int) (inRectCandleCount);
+        }
+        if(mStopIndex > getCount() - 1) {
+            mStopIndex = getCount() - 1;
         }
 
         mMainMaxIndex = mStartIndex;
@@ -142,32 +152,31 @@ public abstract class CandleDrawV2 {
     public void drawCandle(Canvas canvas, int scrollX) {
         canvas.save();
         canvas.scale(mScaleX, 1);
-        int index = 1;
-        for (int i = mStopIndex; i >= mStartIndex; i--) {
+        for (int i = mStartIndex; i <= mStopIndex; i++) {
             KLine currentPoint = getItem(i);
-            float currentPointX = mRectWidth - getX(index) + mCandlePadding + scrollX;
+            int scrollOutCount = getCount() - i;
+            float currentPointX = mRectWidth - getX(scrollOutCount) + mCandlePadding / 2 + scrollX;
             KLine prevPoint = i == 0 ? currentPoint : getItem(i - 1);
-            float prevX = i == 0 ? currentPointX : mRectWidth - getX(index + 1) + mCandlePadding + scrollX;
-            onDraw(prevPoint, currentPoint, prevX, currentPointX, canvas);
-            index++;
+            float prevX = i == 0 ? currentPointX : mRectWidth - getX(scrollOutCount + 1) + mCandlePadding / 2 + scrollX;
+            drawCandleAndMaLine(prevPoint, currentPoint, prevX, currentPointX, canvas);
         }
         //还原 平移缩放
         canvas.restore();
     }
 
-    public void onDraw(@Nullable Candle prevPoint, @NonNull Candle currPoint, float prevX, float currX, @NonNull Canvas canvas) {
+    private void drawCandleAndMaLine(@Nullable Candle prevPoint, @NonNull Candle currPoint, float prevX, float currX, @NonNull Canvas canvas) {
         drawCandle(canvas, currX, currPoint.high, currPoint.low, currPoint.open, currPoint.close);
         //画ma5
-        if (prevPoint.ma5Price != 0) {
-            drawMainLine(canvas, ma5Paint, prevX, prevPoint.ma5Price, currX, currPoint.ma5Price);
+        if (prevPoint != null && prevPoint.ma5Price != 0) {
+            drawLine(canvas, ma5Paint, prevX, prevPoint.ma5Price, currX, currPoint.ma5Price);
         }
         //画ma10
-        if (prevPoint.ma10Price != 0) {
-            drawMainLine(canvas, ma10Paint, prevX, prevPoint.ma10Price, currX, currPoint.ma10Price);
+        if (prevPoint != null && prevPoint.ma10Price != 0) {
+            drawLine(canvas, ma10Paint, prevX, prevPoint.ma10Price, currX, currPoint.ma10Price);
         }
         //画ma20
-        if (prevPoint.ma20Price != 0) {
-            drawMainLine(canvas, ma20Paint, prevX, prevPoint.ma20Price, currX, currPoint.ma20Price);
+        if (prevPoint != null && prevPoint.ma20Price != 0) {
+            drawLine(canvas, ma20Paint, prevX, prevPoint.ma20Price, currX, currPoint.ma20Price);
         }
     }
 
@@ -182,10 +191,10 @@ public abstract class CandleDrawV2 {
      * @param close  收盘价
      */
     private void drawCandle(Canvas canvas, float x, float high, float low, float open, float close) {
-        high = getMainY(high);
-        low = getMainY(low);
-        open = getMainY(open);
-        close = getMainY(close);
+        high = getY(high);
+        low = getY(low);
+        open = getY(open);
+        close = getY(close);
         float r = mCandleWidth / 2;
         float lineR = mCandleLineWidth / 2;
         if (open > close) {
@@ -221,11 +230,11 @@ public abstract class CandleDrawV2 {
      * @param stopX     结束点的横坐标
      * @param stopValue 结束点的值
      */
-    public void drawMainLine(Canvas canvas, Paint paint, float startX, float startValue, float stopX, float stopValue) {
-        canvas.drawLine(startX, getMainY(startValue), stopX, getMainY(stopValue), paint);
+    private void drawLine(Canvas canvas, Paint paint, float startX, float startValue, float stopX, float stopValue) {
+        canvas.drawLine(startX, getY(startValue), stopX, getY(stopValue), paint);
     }
 
-    public void drawText(@NonNull Canvas canvas, @NonNull IChartData chartData, float x, float y) {
+    private void drawText(@NonNull Canvas canvas, @NonNull IChartData chartData, float x, float y) {
         Candle point = (Candle) chartData;
         String text = "MA5:" + KLine.getValueFormatter(ChartEnum.CANDLE.name()).format(point.ma5Price) + "  ";
         canvas.drawText(text, x, y, ma5Paint);
@@ -237,24 +246,25 @@ public abstract class CandleDrawV2 {
         canvas.drawText(text, x, y, ma20Paint);
     }
 
-    public float getMainY(float value) {
+    /**
+     * 获取架构对应的Y坐标
+     *
+     * @param value 架构
+     * @return Y坐标
+     */
+    private float getY(float value) {
         return (mMainMaxValue - value) * mMainScaleY + mRect.top;
     }
 
-    public abstract KLine getItem(int position);
-
-    public abstract int getCount();
-
     /**
-     * 根据索引索取x坐标
+     * 根据索引索取X坐标
      *
      * @param position 索引值
-     * @return
+     * @return X坐标
      */
-    public float getX(int position) {
+    private float getX(int position) {
         return position * (mCandleWidth + mCandlePadding);
     }
-
 
 
     /**
@@ -318,6 +328,10 @@ public abstract class CandleDrawV2 {
         ma20Paint.setTextSize(textSize);
         ma10Paint.setTextSize(textSize);
         ma5Paint.setTextSize(textSize);
+    }
+
+    public float getCandleWidth() {
+        return mCandleWidth + mCandlePadding;
     }
 
     /**

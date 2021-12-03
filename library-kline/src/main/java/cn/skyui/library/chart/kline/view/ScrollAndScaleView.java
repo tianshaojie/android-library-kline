@@ -3,6 +3,7 @@ package cn.skyui.library.chart.kline.view;
 import android.content.Context;
 import android.support.v4.view.GestureDetectorCompat;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
@@ -131,6 +132,7 @@ public abstract class ScrollAndScaleView extends RelativeLayout implements
             onLeftSide();
             mScroller.forceFinished(true);
         }
+        Log.d(ScrollAndScaleView.class.getSimpleName(), "mScrollX=" + mScrollX);
         onScrollChanged(mScrollX, 0, oldX, 0);
         invalidate();
     }

@@ -29,6 +29,7 @@ public class MyExampleActivity extends AppCompatActivity {
         mAdapter = new KLineChartAdapter();
         klineViewV2 = findViewById(R.id.kline_view);
         klineViewV2.setAdapter(mAdapter);
+        //mKChartView.showLoading();
         klineViewV2.setRefreshListener(new KLineViewV2.KChartRefreshListener() {
             @Override
             public void onLoadMore(KLineViewV2 chart) {
@@ -45,7 +46,7 @@ public class MyExampleActivity extends AppCompatActivity {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                final List<KLine> data = DataRequest.getData(MyExampleActivity.this, mAdapter.getCount(), 1000);
+                final List<KLine> data = DataRequest.getData(MyExampleActivity.this, mAdapter.getCount(), 300);
                 try {
                     Thread.sleep(1000);
                 } catch (InterruptedException e) {

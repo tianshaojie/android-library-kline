@@ -28,11 +28,6 @@ public class KLineViewV2 extends ScrollAndScaleView {
     private int mWidth = 0;
     private int mHeight = 0;
 
-    // 数据长度
-    private float mDataLen = 0;
-    // 蜡烛图+间距的宽度
-    private float mPointWidth = 6;
-
     private ValueAnimator mAnimator;
     private long mAnimationDuration = 500;
 
@@ -110,12 +105,13 @@ public class KLineViewV2 extends ScrollAndScaleView {
             }
         });
 
-        // 设置Paint为无锯齿
         int strokeWidth = 2;
         mGridPaint.setStrokeWidth(strokeWidth);
         mGridPaint.setAntiAlias(true);
         mGridPaint.setColor(Color.RED);
         mGridPaint.setStyle(Paint.Style.STROKE);
+        initRect();
+        initView();
     }
 
     private void initView() {
@@ -171,13 +167,18 @@ public class KLineViewV2 extends ScrollAndScaleView {
         if (mWidth == 0 || mCandleRect.height() == 0 || mItemCount == 0) {
             return;
         }
-        mCandleDraw.calculateValue(mScrollX);
         canvas.save();
         canvas.scale(1, 1);
         canvas.drawRect(mKLineRect, mGridPaint);
         mCandleDraw.drawGird(canvas);
+        mCandleDraw.calculateValue(mScrollX);
         mCandleDraw.drawCandle(canvas, mScrollX);
         canvas.restore();
+    }
+
+    @Override
+    protected void onScrollChanged(int l, int t, int oldl, int oldt) {
+        super.onScrollChanged(l, t, oldl, oldt);
     }
 
     private DataSetObserver mDataSetObserver = new DataSetObserver() {
@@ -223,25 +224,11 @@ public class KLineViewV2 extends ScrollAndScaleView {
      */
     public void notifyChanged() {
         if (mItemCount != 0) {
-            mDataLen = (mItemCount - 1) * mPointWidth;
-            // mCandleDraw.setDataLen(mDataLen);
             checkAndFixScrollX();
-            setTranslateXFromScrollX(mScrollX);
         } else {
             setScrollX(0);
         }
         invalidate();
-    }
-
-    private float mTranslateX = Float.MIN_VALUE;
-
-    /**
-     * scrollX 转换为 TranslateX
-     *
-     * @param scrollX
-     */
-    private void setTranslateXFromScrollX(int scrollX) {
-        mTranslateX = scrollX + getMinTranslateX();
     }
 
     @Override
@@ -264,37 +251,8 @@ public class KLineViewV2 extends ScrollAndScaleView {
 
     @Override
     public int getMaxScrollX() {
-        return Math.round(getMaxTranslateX() - getMinTranslateX());
-    }
-
-    /**
-     * 获取平移的最小值
-     *
-     * @return
-     */
-    private float getMinTranslateX() {
-        return -mDataLen + mWidth / mScaleX - mPointWidth / 2;
-    }
-
-    /**
-     * 获取平移的最大值
-     *
-     * @return
-     */
-    private float getMaxTranslateX() {
-        if (!isFullScreen()) {
-            return getMinTranslateX();
-        }
-        return mPointWidth / 2;
-    }
-
-    /**
-     * 数据是否充满屏幕
-     *
-     * @return
-     */
-    public boolean isFullScreen() {
-        return mDataLen >= mWidth / mScaleX;
+        float mDataLen = (mItemCount - 1) * mCandleDraw.getCandleWidth();
+        return (int) (mDataLen - mWidth / mScaleX + mCandleDraw.getCandleWidth() / 2);
     }
 
     private float getDimension(@DimenRes int resId) {
