@@ -12,6 +12,8 @@ import android.support.annotation.DimenRes;
 import android.support.v4.view.GestureDetectorCompat;
 import android.util.AttributeSet;
 import android.view.ScaleGestureDetector;
+import android.view.View;
+import android.widget.ProgressBar;
 
 import cn.skyui.library.chart.kline.R;
 import cn.skyui.library.chart.kline.adapter.KLineChartAdapter;
@@ -45,6 +47,11 @@ public class KLineViewV2 extends ScrollAndScaleView {
     private float mSecondChildRectHeight;
     private Rect mSecondChildRect;
 
+    ProgressBar mProgressBar;
+    private boolean isRefreshing = false;
+    private boolean isLoadMoreEnd = false;
+    private boolean mLastScrollEnable;
+    private boolean mLastScaleEnable;
     private KChartRefreshListener mRefreshListener;
 
     public interface KChartRefreshListener {
@@ -91,6 +98,23 @@ public class KLineViewV2 extends ScrollAndScaleView {
         }
     }
 
+    @Override
+    protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+        super.onSizeChanged(w, h, oldw, oldh);
+        this.mWidth = w;
+        this.mHeight = h;
+        float oneThirdHeight = mHeight / 3.0f;
+        if (mFirstChildRectHeight > oneThirdHeight) {
+            mFirstChildRectHeight = oneThirdHeight;
+        }
+        if (mSecondChildRectHeight > oneThirdHeight) {
+            mSecondChildRectHeight = oneThirdHeight;
+        }
+        initRect();
+        initView();
+    }
+
+
     private void init() {
         setWillNotDraw(false);
         mDetector = new GestureDetectorCompat(getContext(), this);
@@ -110,12 +134,8 @@ public class KLineViewV2 extends ScrollAndScaleView {
         mGridPaint.setAntiAlias(true);
         mGridPaint.setColor(Color.RED);
         mGridPaint.setStyle(Paint.Style.STROKE);
-        initRect();
-        initView();
-    }
 
-    private void initView() {
-        mCandleDraw = new CandleDrawV2(getContext(), mCandleRect) {
+        mCandleDraw = new CandleDrawV2(getContext()) {
             @Override
             public KLine getItem(int position) {
                 return mAdapter.getItem(position);
@@ -128,20 +148,12 @@ public class KLineViewV2 extends ScrollAndScaleView {
         };
     }
 
-    @Override
-    protected void onSizeChanged(int w, int h, int oldw, int oldh) {
-        super.onSizeChanged(w, h, oldw, oldh);
-        this.mWidth = w;
-        this.mHeight = h;
-        float oneThirdHeight = mHeight / 3.0f;
-        if (mFirstChildRectHeight > oneThirdHeight) {
-            mFirstChildRectHeight = oneThirdHeight;
-        }
-        if (mSecondChildRectHeight > oneThirdHeight) {
-            mSecondChildRectHeight = oneThirdHeight;
-        }
-        initRect();
-        initView();
+    private void initView() {
+        mProgressBar = new ProgressBar(getContext());
+        LayoutParams layoutParams = new LayoutParams(dp2px(50), dp2px(50));
+        layoutParams.addRule(CENTER_IN_PARENT);
+        addView(mProgressBar, layoutParams);
+        mProgressBar.setVisibility(GONE);
     }
 
     private void initRect() {
@@ -159,6 +171,7 @@ public class KLineViewV2 extends ScrollAndScaleView {
             mCandleRect = new Rect(0, 0, mWidth, (int) (mHeight - mFirstChildRectHeight));
             mFirstChildRect = new Rect(0, mCandleRect.bottom, mWidth, (int) (mCandleRect.bottom + mSecondChildRectHeight));
         }
+        mCandleDraw.setRect(mCandleRect);
     }
 
     @Override
@@ -236,12 +249,58 @@ public class KLineViewV2 extends ScrollAndScaleView {
         showLoading();
     }
 
-    private void showLoading() {
+    /**
+     * 开始动画
+     */
+    public void startAnimation() {
+        if (mAnimator != null) {
+            mAnimator.start();
+        }
+    }
+
+    public void showLoading() {
+        if (!isLoadMoreEnd && !isRefreshing) {
+            isRefreshing = true;
+            if (mProgressBar != null) {
+                mProgressBar.setVisibility(View.VISIBLE);
+            }
+            if (mRefreshListener != null) {
+                mRefreshListener.onLoadMore(this);
+            }
+            mLastScaleEnable = isScaleEnable();
+            mLastScrollEnable = isScrollEnable();
+            super.setScrollEnable(false);
+            super.setScaleEnable(false);
+        }
+    }
+
+    private void hideLoading() {
+        if (mProgressBar != null) {
+            mProgressBar.setVisibility(View.GONE);
+        }
+        super.setScrollEnable(mLastScrollEnable);
+        super.setScaleEnable(mLastScaleEnable);
+    }
+
+    /**
+     * 刷新完成
+     */
+    public void refreshComplete() {
+        isRefreshing = false;
+        hideLoading();
+    }
+
+    /**
+     * 刷新完成，没有数据
+     */
+    public void refreshEnd() {
+        isLoadMoreEnd = true;
+        isRefreshing = false;
+        hideLoading();
     }
 
     @Override
     public void onRightSide() {
-
     }
 
     @Override
@@ -274,5 +333,10 @@ public class KLineViewV2 extends ScrollAndScaleView {
 
     public void setSecondChildRectHeight(float mSecondChildRectHeight) {
         this.mSecondChildRectHeight = mSecondChildRectHeight;
+    }
+
+    public int dp2px(float dp) {
+        final float scale = getContext().getResources().getDisplayMetrics().density;
+        return (int) (dp * scale + 0.5f);
     }
 }

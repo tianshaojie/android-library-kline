@@ -29,24 +29,24 @@ public class MyExampleActivity extends AppCompatActivity {
         mAdapter = new KLineChartAdapter();
         klineViewV2 = findViewById(R.id.kline_view);
         klineViewV2.setAdapter(mAdapter);
-        //mKChartView.showLoading();
+        klineViewV2.showLoading();
         klineViewV2.setRefreshListener(new KLineViewV2.KChartRefreshListener() {
             @Override
             public void onLoadMore(KLineViewV2 chart) {
-                onLoadMore(chart);
+                onLoadMoreBegin(chart);
             }
         });
     }
 
     private void initData() {
-        onLoadMore(klineViewV2);
+        onLoadMoreBegin(klineViewV2);
     }
 
-    public void onLoadMore(KLineViewV2 chart) {
+    public void onLoadMoreBegin(KLineViewV2 chart) {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                final List<KLine> data = DataRequest.getData(MyExampleActivity.this, mAdapter.getCount(), 300);
+                final List<KLine> data = DataRequest.getData(MyExampleActivity.this, mAdapter.getCount(), 100);
                 try {
                     Thread.sleep(1000);
                 } catch (InterruptedException e) {
@@ -60,16 +60,16 @@ public class MyExampleActivity extends AppCompatActivity {
                     public void run() {
                         //第一次加载时开始动画
                         if (mAdapter.getCount() == 0) {
-//                            klineViewV2.startAnimation();
+                            klineViewV2.startAnimation();
                         }
                         mAdapter.addFooterData(data);
                         //加载完成，还有更多数据
                         if (data.size() > 0) {
-//                            klineViewV2.refreshComplete();
+                            klineViewV2.refreshComplete();
                         }
                         //加载完成，没有更多数据
                         else {
-//                            klineViewV2.refreshEnd();
+                            klineViewV2.refreshEnd();
                         }
                     }
                 });

@@ -56,14 +56,12 @@ public abstract class CandleDrawV2 {
 
     private boolean mCandleSolid = true; // 实心蜡烛图
 
-    public CandleDrawV2(Context context, Rect rect) {
+    public CandleDrawV2(Context context) {
         mContext = context;
-        mRect = rect;
         mGridPaint.setAntiAlias(true);
         mGridPaint.setColor(Color.GRAY);
         mGridPaint.setStyle(Paint.Style.STROKE);
 
-        mRectWidth = mRect.width();
         mRedPaint.setColor(ContextCompat.getColor(context, R.color.chart_red));
         mGreenPaint.setColor(ContextCompat.getColor(context, R.color.chart_green));
 
@@ -75,6 +73,12 @@ public abstract class CandleDrawV2 {
     public abstract KLine getItem(int position);
 
     public abstract int getCount();
+
+    public void setRect(Rect rect) {
+        mRect = rect;
+        mRectWidth = mRect.width();
+    }
+
 
     /**
      * 画表格
