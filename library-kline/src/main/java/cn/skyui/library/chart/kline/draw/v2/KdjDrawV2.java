@@ -27,7 +27,7 @@ public class KdjDrawV2 extends BaseChartDraw {
     }
 
     @Override
-    public void drawSingleChart(@NonNull Canvas canvas, @Nullable KLine prevPoint, @NonNull KLine currPoint, float prevX, float curX) {
+    public void drawChart(@NonNull Canvas canvas, @Nullable KLine prevPoint, @NonNull KLine currPoint, float prevX, float curX) {
         drawLine(canvas, mKPaint, prevX, prevPoint.kdj.k, curX, currPoint.kdj.k);
         drawLine(canvas, mDPaint, prevX, prevPoint.kdj.d, curX, currPoint.kdj.d);
         drawLine(canvas, mJPaint, prevX, prevPoint.kdj.j, curX, currPoint.kdj.j);

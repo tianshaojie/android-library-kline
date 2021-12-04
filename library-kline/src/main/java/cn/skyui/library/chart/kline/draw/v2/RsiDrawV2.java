@@ -8,11 +8,9 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import cn.skyui.library.chart.kline.base.IChartData;
-import cn.skyui.library.chart.kline.base.IChartDraw;
 import cn.skyui.library.chart.kline.data.ChartEnum;
 import cn.skyui.library.chart.kline.data.model.KLine;
 import cn.skyui.library.chart.kline.data.model.Rsi;
-import cn.skyui.library.chart.kline.view.BaseKLineChartView;
 
 /**
  * RSI实现类
@@ -29,7 +27,7 @@ public class RsiDrawV2 extends BaseChartDraw {
     }
 
     @Override
-    public void drawSingleChart(@NonNull Canvas canvas, @Nullable KLine prevPoint, @NonNull KLine currPoint, float prevX, float curX) {
+    public void drawChart(@NonNull Canvas canvas, @Nullable KLine prevPoint, @NonNull KLine currPoint, float prevX, float curX) {
         drawLine(canvas, mRSI1Paint, prevX, prevPoint.rsi.rsi1, curX, currPoint.rsi.rsi1);
         drawLine(canvas, mRSI2Paint, prevX, prevPoint.rsi.rsi2, curX, currPoint.rsi.rsi2);
         drawLine(canvas, mRSI3Paint, prevX, prevPoint.rsi.rsi3, curX, currPoint.rsi.rsi3);

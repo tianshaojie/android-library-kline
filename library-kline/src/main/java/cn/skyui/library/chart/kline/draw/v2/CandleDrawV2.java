@@ -86,13 +86,13 @@ public class CandleDrawV2 extends BaseChartDraw {
     }
 
     @Override
-    public void drawChart(Canvas canvas, int scrollX, int mStartIndex, int mStopIndex) {
-        super.drawChart(canvas, scrollX, mStartIndex, mStopIndex);
+    public void onDraw(Canvas canvas, int scrollX) {
+        super.onDraw(canvas, scrollX);
         drawGird(canvas);
     }
 
     @Override
-    public void drawSingleChart(@NonNull Canvas canvas, @Nullable KLine prevPoint, @NonNull KLine currPoint, float prevX, float currX) {
+    public void drawChart(@NonNull Canvas canvas, @Nullable KLine prevPoint, @NonNull KLine currPoint, float prevX, float currX) {
         drawCandleChart(canvas, currX, currPoint.high, currPoint.low, currPoint.open, currPoint.close);
         //画ma5
         if (prevPoint != null && prevPoint.ma5Price != 0) {

@@ -33,7 +33,7 @@ public class VolumeDrawV2 extends BaseChartDraw {
     }
 
     @Override
-    public void drawSingleChart(@NonNull Canvas canvas, @Nullable KLine prevPoint, @NonNull KLine currPoint, float prevX, float currX) {
+    public void drawChart(@NonNull Canvas canvas, @Nullable KLine prevPoint, @NonNull KLine currPoint, float prevX, float currX) {
         drawVol(canvas, currPoint.vol, prevPoint.vol, currX);
         if (prevPoint.vol.ma5Volume != 0f) {
             drawLine(canvas, ma5Paint, prevX, prevPoint.vol.ma5Volume, currX, currPoint.vol.ma5Volume);;

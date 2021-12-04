@@ -35,14 +35,12 @@ import cn.skyui.library.chart.kline.draw.v2.VolumeDrawV2;
  */
 public class KLineViewV2 extends ScrollAndScaleView {
 
-    KLineChartAdapter mAdapter;
+    private KLineChartAdapter mAdapter;
+    private int mStartIndex = 0; // 可见区域数据List的开始索引位置
+    private int mStopIndex = 0;  // 可见区域数据List的结束索引位置
 
     private int mWidth = 0;
     private int mHeight = 0;
-
-    private ValueAnimator mAnimator;
-    private long mAnimationDuration = 500;
-
     private Rect mKLineRect;
     private Paint mGridPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 
@@ -58,7 +56,6 @@ public class KLineViewV2 extends ScrollAndScaleView {
     private Boolean isShowVol = true;
 
     private BaseChartDraw mChildDraw;
-    private String mChildDrawType;
     private Map<String, BaseChartDraw> mChildDraws = new HashMap<>();
 
     private boolean isShowFirstChildRect;
@@ -69,7 +66,9 @@ public class KLineViewV2 extends ScrollAndScaleView {
     private float mSecondChildRectHeight;
     private Rect mSecondChildRect;
 
-    ProgressBar mProgressBar;
+    private ValueAnimator mAnimator;
+    private long mAnimationDuration = 500;
+    private ProgressBar mProgressBar;
     private boolean isRefreshing = false;
     private boolean isLoadMoreEnd = false;
     private boolean mLastScrollEnable;
@@ -80,12 +79,19 @@ public class KLineViewV2 extends ScrollAndScaleView {
         void onLoadMore(KLineViewV2 chart);
     }
 
-    /**
-     * 设置刷新监听
-     */
-    public void setRefreshListener(KChartRefreshListener refreshListener) {
-        mRefreshListener = refreshListener;
-    }
+    private DataSetObserver mDataSetObserver = new DataSetObserver() {
+        @Override
+        public void onChanged() {
+            mItemCount = getAdapter().getCount();
+            notifyChanged();
+        }
+
+        @Override
+        public void onInvalidated() {
+            mItemCount = getAdapter().getCount();
+            notifyChanged();
+        }
+    };
 
     public KLineViewV2(Context context) {
         super(context);
@@ -211,28 +217,25 @@ public class KLineViewV2 extends ScrollAndScaleView {
         calculateValue(mScrollX);
 
         mCandleDraw.calculateValue(mAdapter.getItems(), mStartIndex, mStopIndex);
-        mCandleDraw.drawChart(canvas, mScrollX, mStartIndex, mStopIndex);
+        mCandleDraw.onDraw(canvas, mScrollX);
 
         mVolumeDraw.calculateValue(mAdapter.getItems(), mStartIndex, mStopIndex);
-        mVolumeDraw.drawChart(canvas, mScrollX, mStartIndex, mStopIndex);
+        mVolumeDraw.onDraw(canvas, mScrollX);
 
-//        mMACDDraw.calculateValue(mAdapter.getItems(), mStartIndex, mStopIndex);
-//        mMACDDraw.drawChart(canvas, mScrollX, mStartIndex, mStopIndex);
+        mMACDDraw.calculateValue(mAdapter.getItems(), mStartIndex, mStopIndex);
+        mMACDDraw.onDraw(canvas, mScrollX);
 
 //        mKDJDraw.calculateValue(mAdapter.getItems(), mStartIndex, mStopIndex);
-//        mKDJDraw.drawChart(canvas, mScrollX, mStartIndex, mStopIndex);
+//        mKDJDraw.drawChart(canvas, mScrollX);
 
 //        mRSIDraw.calculateValue(mAdapter.getItems(), mStartIndex, mStopIndex);
-//        mRSIDraw.drawChart(canvas, mScrollX, mStartIndex, mStopIndex);
+//        mRSIDraw.drawChart(canvas, mScrollX);
 
-        mBOLLDraw.calculateValue(mAdapter.getItems(), mStartIndex, mStopIndex);
-        mBOLLDraw.drawChart(canvas, mScrollX, mStartIndex, mStopIndex);
+//        mBOLLDraw.calculateValue(mAdapter.getItems(), mStartIndex, mStopIndex);
+//        mBOLLDraw.drawChart(canvas, mScrollX);
 
         canvas.restore();
     }
-
-    private int mStartIndex = 0; // 可见区域数据List的开始索引位置
-    private int mStopIndex = 0;  // 可见区域数据List的结束索引位置
 
     public void calculateValue(int scrollX) {
         float singleChartWidth = mCandleDraw.getCandleWidth();
@@ -261,7 +264,6 @@ public class KLineViewV2 extends ScrollAndScaleView {
      * @param mSelectedChartName
      */
     public void setChildDraw(String mSelectedChartName) {
-        this.mChildDrawType = mSelectedChartName;
         this.mChildDraw = mChildDraws.get(mSelectedChartName);
         if (!isShowChild) {
             isShowChild = true;
@@ -289,20 +291,6 @@ public class KLineViewV2 extends ScrollAndScaleView {
     protected void onScrollChanged(int l, int t, int oldl, int oldt) {
         super.onScrollChanged(l, t, oldl, oldt);
     }
-
-    private DataSetObserver mDataSetObserver = new DataSetObserver() {
-        @Override
-        public void onChanged() {
-            mItemCount = getAdapter().getCount();
-            notifyChanged();
-        }
-
-        @Override
-        public void onInvalidated() {
-            mItemCount = getAdapter().getCount();
-            notifyChanged();
-        }
-    };
 
     public KLineChartAdapter getAdapter() {
         return mAdapter;
@@ -408,6 +396,13 @@ public class KLineViewV2 extends ScrollAndScaleView {
     public int getMaxScrollX() {
         float mDataLen = (mItemCount - 1) * mCandleDraw.getCandleWidth();
         return (int) (mDataLen - mWidth / mScaleX + mCandleDraw.getCandleWidth() / 2);
+    }
+
+    /**
+     * 设置刷新监听
+     */
+    public void setRefreshListener(KChartRefreshListener refreshListener) {
+        mRefreshListener = refreshListener;
     }
 
     private float getDimension(@DimenRes int resId) {
