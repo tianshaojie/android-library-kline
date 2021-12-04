@@ -3,6 +3,7 @@ package cn.skyui.library.chart.kline.draw.v2;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
@@ -39,24 +40,10 @@ public class MacdDrawV2 extends BaseChartDraw {
     }
 
     @Override
-    public void drawChart(Canvas canvas, int scrollX, int mStartIndex, int mStopIndex) {
-        if(mDateList == null || mDateList.size() == 0) {
-            return;
-        }
-        for (int i = mStartIndex; i <= mStopIndex; i++) {
-            KLine currentPoint = mDateList.get(i);
-            int scrollOutCount = mDateList.size() - i;
-            float currentPointX = mRectWidth - getX(scrollOutCount) + mChartPadding / 2 + scrollX;
-            KLine lastPoint = i == 0 ? currentPoint : mDateList.get(i - 1);
-            float prevX = i == 0 ? currentPointX : mRectWidth - getX(scrollOutCount + 1) + mChartPadding / 2 + scrollX;
-            drawChart(canvas, lastPoint.macd, currentPoint.macd, prevX, currentPointX);
-        }
-    }
-
-    private void drawChart(@NonNull Canvas canvas, @Nullable Macd lastPoint, @NonNull Macd curPoint, float lastX, float curX) {
-        drawMACD(canvas, curX, curPoint.macd);
-        drawLine(canvas, mDIFPaint, lastX, lastPoint.dea, curX, curPoint.dea);
-        drawLine(canvas, mDEAPaint, lastX, lastPoint.dif, curX, curPoint.dif);
+    public void drawSingleChart(@NonNull Canvas canvas, @Nullable KLine prevPoint, @NonNull KLine currPoint, float prevX, float currX) {
+        drawMACD(canvas, currX, prevPoint.macd.macd);
+        drawLine(canvas, mDIFPaint, prevX, prevPoint.macd.dea, currX, currPoint.macd.dea);
+        drawLine(canvas, mDEAPaint, prevX, prevPoint.macd.dif, currX, currPoint.macd.dif);
     }
 
     /**

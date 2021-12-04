@@ -13,6 +13,7 @@ import cn.skyui.library.chart.kline.R;
 import cn.skyui.library.chart.kline.base.IChartData;
 import cn.skyui.library.chart.kline.data.ChartEnum;
 import cn.skyui.library.chart.kline.data.model.KLine;
+import cn.skyui.library.chart.kline.data.model.Macd;
 
 public abstract class BaseChartDraw {
 
@@ -59,7 +60,23 @@ public abstract class BaseChartDraw {
         mScaleY = mRect.height() * 1f / (mMaxValue - mMinValue);
     }
 
-    public abstract void drawChart(Canvas canvas, int scrollX, int mStartIndex, int mStopIndex);
+    public void drawChart(Canvas canvas, int scrollX, int mStartIndex, int mStopIndex) {
+        if(mRect == null || mDateList == null || mDateList.size() == 0) {
+            return;
+        }
+        for (int i = mStartIndex; i <= mStopIndex; i++) {
+            KLine currentPoint = mDateList.get(i);
+            int scrollOutCount = mDateList.size() - i;
+            float currentPointX = mRectWidth - getX(scrollOutCount) + mChartPadding / 2 + scrollX;
+            KLine prevPoint = i == 0 ? currentPoint : mDateList.get(i - 1);
+            float prevX = i == 0 ? currentPointX : mRectWidth - getX(scrollOutCount + 1) + mChartPadding / 2 + scrollX;
+            drawSingleChart(canvas, prevPoint, currentPoint, prevX, currentPointX);
+        }
+    }
+
+    public abstract void drawSingleChart(@NonNull Canvas canvas, @Nullable KLine prevPoint, @NonNull KLine currPoint, float prevX, float curX);
+
+//    public abstract void drawChart(Canvas canvas, int scrollX, int mStartIndex, int mStopIndex);
 
     /**
      * 在子区域画线

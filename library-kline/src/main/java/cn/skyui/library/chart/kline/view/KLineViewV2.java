@@ -8,12 +8,13 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
-import androidx.annotation.DimenRes;
-import androidx.core.view.GestureDetectorCompat;
 import android.util.AttributeSet;
 import android.view.ScaleGestureDetector;
 import android.view.View;
 import android.widget.ProgressBar;
+
+import androidx.annotation.DimenRes;
+import androidx.core.view.GestureDetectorCompat;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -21,10 +22,12 @@ import java.util.Map;
 import cn.skyui.library.chart.kline.R;
 import cn.skyui.library.chart.kline.adapter.KLineChartAdapter;
 import cn.skyui.library.chart.kline.data.ChartEnum;
-import cn.skyui.library.chart.kline.data.model.KLine;
 import cn.skyui.library.chart.kline.draw.v2.BaseChartDraw;
+import cn.skyui.library.chart.kline.draw.v2.BollDrawV2;
 import cn.skyui.library.chart.kline.draw.v2.CandleDrawV2;
+import cn.skyui.library.chart.kline.draw.v2.KdjDrawV2;
 import cn.skyui.library.chart.kline.draw.v2.MacdDrawV2;
+import cn.skyui.library.chart.kline.draw.v2.RsiDrawV2;
 import cn.skyui.library.chart.kline.draw.v2.VolumeDrawV2;
 
 /**
@@ -47,9 +50,16 @@ public class KLineViewV2 extends ScrollAndScaleView {
     private CandleDrawV2 mCandleDraw;
     private VolumeDrawV2 mVolumeDraw;
     private MacdDrawV2 mMACDDraw;
-//    private BollDraw mBOLLDraw;
-//    private RsiDraw mRSIDraw;
-//    private KdjDraw mKDJDraw;
+    private KdjDrawV2 mKDJDraw;
+    private RsiDrawV2 mRSIDraw;
+    private BollDrawV2 mBOLLDraw;
+
+    private Boolean isShowChild = false;
+    private Boolean isShowVol = true;
+
+    private BaseChartDraw mChildDraw;
+    private String mChildDrawType;
+    private Map<String, BaseChartDraw> mChildDraws = new HashMap<>();
 
     private boolean isShowFirstChildRect;
     private float mFirstChildRectHeight;
@@ -134,12 +144,7 @@ public class KLineViewV2 extends ScrollAndScaleView {
 
         mAnimator = ValueAnimator.ofFloat(0f, 1f);
         mAnimator.setDuration(mAnimationDuration);
-        mAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-            @Override
-            public void onAnimationUpdate(ValueAnimator animation) {
-                invalidate();
-            }
-        });
+        mAnimator.addUpdateListener(animation -> invalidate());
 
         int strokeWidth = 2;
         mGridPaint.setStrokeWidth(strokeWidth);
@@ -150,14 +155,14 @@ public class KLineViewV2 extends ScrollAndScaleView {
         mCandleDraw = new CandleDrawV2(getContext());
         mVolumeDraw = new VolumeDrawV2(getContext());
         mMACDDraw = new MacdDrawV2(getContext());
-//        mKDJDraw = new KdjDraw(getContext());
-//        mRSIDraw = new RsiDraw(getContext());
-//        mBOLLDraw = new BollDraw(getContext());
+        mKDJDraw = new KdjDrawV2(getContext());
+        mRSIDraw = new RsiDrawV2(getContext());
+        mBOLLDraw = new BollDrawV2(getContext());
 
         addChildDraw(ChartEnum.MACD.name(), mMACDDraw);
-//        addChildDraw(ChartEnum.KDJ.name(), mKDJDraw);
-//        addChildDraw(ChartEnum.RSI.name(), mRSIDraw);
-//        addChildDraw(ChartEnum.BOOL.name(),mBOLLDraw);
+        addChildDraw(ChartEnum.KDJ.name(), mKDJDraw);
+        addChildDraw(ChartEnum.RSI.name(), mRSIDraw);
+        addChildDraw(ChartEnum.BOOL.name(),mBOLLDraw);
         setChildDraw(ChartEnum.MACD.name());
     }
 
@@ -188,6 +193,9 @@ public class KLineViewV2 extends ScrollAndScaleView {
         mCandleDraw.setRect(mCandleRect);
         mVolumeDraw.setRect(mFirstChildRect);
         mMACDDraw.setRect(mSecondChildRect);
+        mKDJDraw.setRect(mSecondChildRect);
+        mRSIDraw.setRect(mSecondChildRect);
+        mBOLLDraw.setRect(mSecondChildRect);
     }
 
     @Override
@@ -208,8 +216,18 @@ public class KLineViewV2 extends ScrollAndScaleView {
         mVolumeDraw.calculateValue(mAdapter.getItems(), mStartIndex, mStopIndex);
         mVolumeDraw.drawChart(canvas, mScrollX, mStartIndex, mStopIndex);
 
-        mMACDDraw.calculateValue(mAdapter.getItems(), mStartIndex, mStopIndex);
-        mMACDDraw.drawChart(canvas, mScrollX, mStartIndex, mStopIndex);
+//        mMACDDraw.calculateValue(mAdapter.getItems(), mStartIndex, mStopIndex);
+//        mMACDDraw.drawChart(canvas, mScrollX, mStartIndex, mStopIndex);
+
+//        mKDJDraw.calculateValue(mAdapter.getItems(), mStartIndex, mStopIndex);
+//        mKDJDraw.drawChart(canvas, mScrollX, mStartIndex, mStopIndex);
+
+//        mRSIDraw.calculateValue(mAdapter.getItems(), mStartIndex, mStopIndex);
+//        mRSIDraw.drawChart(canvas, mScrollX, mStartIndex, mStopIndex);
+
+        mBOLLDraw.calculateValue(mAdapter.getItems(), mStartIndex, mStopIndex);
+        mBOLLDraw.drawChart(canvas, mScrollX, mStartIndex, mStopIndex);
+
         canvas.restore();
     }
 
@@ -234,52 +252,6 @@ public class KLineViewV2 extends ScrollAndScaleView {
         }
         if (mStopIndex > mAdapter.getCount() - 1) {
             mStopIndex = mAdapter.getCount() - 1;
-        }
-    }
-
-    private Boolean isWR = false;
-    private Boolean isShowChild = false;
-    private Boolean isShowVol = true;
-
-    private BaseChartDraw mChildDraw;
-    private String mChildDrawType;
-    private Map<String, BaseChartDraw> mChildDraws = new HashMap<>();
-    private float mChildMaxValue = Float.MIN_VALUE;
-    private float mChildMinValue = Float.MAX_VALUE;
-
-    public void calculateSubChartValue(int mStartIndex, int mStopIndex) {
-        for (int i = mStartIndex; i <= mStopIndex; i++) {
-            KLine point = (KLine) mAdapter.getItem(i);
-            mChildMaxValue = Math.max(mChildMaxValue, point.getChildData(mChildDrawType).getMaxValue());
-            mChildMinValue = Math.min(mChildMinValue, point.getChildData(mChildDrawType).getMinValue());
-        }
-
-        if (Math.abs(mChildMaxValue) < 0.01 && Math.abs(mChildMinValue) < 0.01) {
-            mChildMaxValue = 1f;
-        } else if (mChildMaxValue == mChildMinValue) {
-            //当最大值和最小值都相等的时候 分别增大最大值和 减小最小值
-            mChildMaxValue += Math.abs(mChildMaxValue * 0.05f);
-            mChildMinValue -= Math.abs(mChildMinValue * 0.05f);
-            if (mChildMaxValue == 0) {
-                mChildMaxValue = 1f;
-            }
-        }
-
-        if (isWR) {
-            mChildMaxValue = 0f;
-            if (Math.abs(mChildMinValue) < 0.01)
-                mChildMinValue = -10.00f;
-        }
-    }
-
-    public void drawSubChart(Canvas canvas, int scrollX, int mStartIndex, int mStopIndex) {
-        for (int i = mStartIndex; i <= mStopIndex; i++) {
-            KLine currentPoint = mAdapter.getItem(i);
-            int scrollOutCount = mAdapter.getCount() - i;
-            float currentPointX = mSecondChildRect.width() - getX(scrollOutCount) + mCandleDraw.getCandlePadding() / 2 + scrollX;
-            KLine lastPoint = i == 0 ? currentPoint : mAdapter.getItem(i - 1);
-            float prevX = i == 0 ? currentPointX : mSecondChildRect.width() - getX(scrollOutCount + 1) + mCandleDraw.getCandlePadding() / 2 + scrollX;
-//            mChildDraw.drawChart(lastPoint.vol, currentPoint.vol, prevX, currentPointX, canvas, i);
         }
     }
 

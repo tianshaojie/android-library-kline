@@ -87,19 +87,25 @@ public class CandleDrawV2 extends BaseChartDraw {
 
     @Override
     public void drawChart(Canvas canvas, int scrollX, int mStartIndex, int mStopIndex) {
-        canvas.save();
-        canvas.scale(mScaleX, 1);
+        super.drawChart(canvas, scrollX, mStartIndex, mStopIndex);
         drawGird(canvas);
-        for (int i = mStartIndex; i <= mStopIndex; i++) {
-            KLine currentPoint = mDateList.get(i);
-            int scrollOutCount = mDateList.size() - i;
-            float currentPointX = mRectWidth - getX(scrollOutCount) + mChartPadding / 2 + scrollX;
-            KLine prevPoint = i == 0 ? currentPoint : mDateList.get(i - 1);
-            float prevX = i == 0 ? currentPointX : mRectWidth - getX(scrollOutCount + 1) + mChartPadding / 2 + scrollX;
-            drawCandleMaChart(prevPoint, currentPoint, prevX, currentPointX, canvas);
+    }
+
+    @Override
+    public void drawSingleChart(@NonNull Canvas canvas, @Nullable KLine prevPoint, @NonNull KLine currPoint, float prevX, float currX) {
+        drawCandleChart(canvas, currX, currPoint.high, currPoint.low, currPoint.open, currPoint.close);
+        //画ma5
+        if (prevPoint != null && prevPoint.ma5Price != 0) {
+            drawLine(canvas, ma5Paint, prevX, prevPoint.ma5Price, currX, currPoint.ma5Price);
         }
-        //还原 平移缩放
-        canvas.restore();
+        //画ma10
+        if (prevPoint != null && prevPoint.ma10Price != 0) {
+            drawLine(canvas, ma10Paint, prevX, prevPoint.ma10Price, currX, currPoint.ma10Price);
+        }
+        //画ma20
+        if (prevPoint != null && prevPoint.ma20Price != 0) {
+            drawLine(canvas, ma20Paint, prevX, prevPoint.ma20Price, currX, currPoint.ma20Price);
+        }
     }
 
     /**
