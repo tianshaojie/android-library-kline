@@ -20,14 +20,16 @@ public abstract class BaseChartDraw {
     protected ChartEnum mChartType;
     protected List<KLine> mDateList;
 
-    protected float mChartWidth = 0;
-    protected float mChartPadding = 0;
+    protected float mChartWidth;
+    protected float mChartPadding;
 
     protected Rect mRect;
     protected int mRectWidth;
 
-    protected Float mMaxValue = Float.MIN_VALUE;
-    protected Float mMinValue = Float.MAX_VALUE;
+    protected float mMaxValue = Float.MIN_VALUE;
+    protected float mMinValue = Float.MAX_VALUE;
+
+    protected float mScaleX = 1;
     protected float mScaleY = 1;
 
     public BaseChartDraw(Context context, ChartEnum chartType) {
@@ -44,8 +46,10 @@ public abstract class BaseChartDraw {
 
     public void calculateValue(List<KLine> dataList, int mStartIndex, int mStopIndex) {
         mDateList = dataList;
+        mMaxValue = Float.MIN_VALUE;
+        mMinValue = Float.MAX_VALUE;
         for (int i = mStartIndex; i <= mStopIndex; i++) {
-            KLine point = (KLine) mDateList.get(i);
+            KLine point = (KLine) dataList.get(i);
             mMaxValue = Math.max(mMaxValue, point.getChildData(mChartType.name()).getMaxValue());
             mMinValue = Math.min(mMinValue, point.getChildData(mChartType.name()).getMinValue());
         }
@@ -69,10 +73,22 @@ public abstract class BaseChartDraw {
         canvas.drawLine(startX, getY(startValue), stopX, getY(stopValue), paint);
     }
 
+    /**
+     * 根据索引索取X坐标
+     *
+     * @param position 索引值
+     * @return X坐标
+     */
     public float getX(int position) {
         return position * (mChartWidth + mChartPadding);
     }
 
+    /**
+     * 获取架构对应的Y坐标
+     *
+     * @param value 价格
+     * @return Y坐标
+     */
     public float getY(float value) {
         return (mMaxValue - value) * mScaleY + mRect.top;
     }

@@ -27,7 +27,9 @@ public class KLine extends Candle {
     }
 
     public IChartData getChildData(String type) {
-        if (ChartEnum.BOOL.name().equals(type)) {
+        if (ChartEnum.CANDLE.name().equals(type)) {
+            return this;
+        } else if (ChartEnum.BOOL.name().equals(type)) {
             return boll;
         } else if (ChartEnum.KDJ.name().equals(type)) {
             return kdj;
@@ -38,7 +40,7 @@ public class KLine extends Candle {
         } else if (ChartEnum.VOL.name().equals(type)) {
             return vol;
         }
-        return null;
+        return this;
     }
 
 

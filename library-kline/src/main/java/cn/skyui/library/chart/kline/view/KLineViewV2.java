@@ -147,17 +147,7 @@ public class KLineViewV2 extends ScrollAndScaleView {
         mGridPaint.setColor(Color.RED);
         mGridPaint.setStyle(Paint.Style.STROKE);
 
-        mCandleDraw = new CandleDrawV2(getContext()) {
-            @Override
-            public KLine getItem(int position) {
-                return mAdapter.getItem(position);
-            }
-
-            @Override
-            public int getCount() {
-                return mAdapter.getCount();
-            }
-        };
+        mCandleDraw = new CandleDrawV2(getContext());
         mVolumeDraw = new VolumeDrawV2(getContext());
         mMACDDraw = new MacdDrawV2(getContext());
 //        mKDJDraw = new KdjDraw(getContext());
@@ -209,16 +199,42 @@ public class KLineViewV2 extends ScrollAndScaleView {
         canvas.save();
         canvas.scale(1, 1);
         canvas.drawRect(mKLineRect, mGridPaint);
-        mCandleDraw.drawGird(canvas);
-        mCandleDraw.calculateValue(mScrollX);
-        mCandleDraw.drawCandleChart(canvas, mScrollX);
 
-        mVolumeDraw.calculateValue(mAdapter.getItems(), mCandleDraw.getStartIndex(), mCandleDraw.getStopIndex());
-        mVolumeDraw.drawChart(canvas, mScrollX, mCandleDraw.getStartIndex(), mCandleDraw.getStopIndex());
+        calculateValue(mScrollX);
 
-        mMACDDraw.calculateValue(mAdapter.getItems(), mCandleDraw.getStartIndex(), mCandleDraw.getStopIndex());
-        mMACDDraw.drawChart(canvas, mScrollX, mCandleDraw.getStartIndex(), mCandleDraw.getStopIndex());
+        mCandleDraw.calculateValue(mAdapter.getItems(), mStartIndex, mStopIndex);
+        mCandleDraw.drawChart(canvas, mScrollX, mStartIndex, mStopIndex);
+
+        mVolumeDraw.calculateValue(mAdapter.getItems(), mStartIndex, mStopIndex);
+        mVolumeDraw.drawChart(canvas, mScrollX, mStartIndex, mStopIndex);
+
+        mMACDDraw.calculateValue(mAdapter.getItems(), mStartIndex, mStopIndex);
+        mMACDDraw.drawChart(canvas, mScrollX, mStartIndex, mStopIndex);
         canvas.restore();
+    }
+
+    private int mStartIndex = 0; // 可见区域数据List的开始索引位置
+    private int mStopIndex = 0;  // 可见区域数据List的结束索引位置
+
+    public void calculateValue(int scrollX) {
+        float singleChartWidth = mCandleDraw.getCandleWidth();
+        // 屏幕内+屏幕外右侧画布区域的蜡烛图数量
+        float candleCount = (mWidth + scrollX) / singleChartWidth;
+        // 屏幕内的蜡烛图数量
+        float inRectCandleCount = mWidth / singleChartWidth;
+        // 屏幕外右侧的蜡烛图数量
+        float scrollOutCount = scrollX / singleChartWidth;
+        mStartIndex = mAdapter.getCount() - (int) candleCount - 1;
+        if (mStartIndex <= 0) {
+            mStartIndex = 0;
+        }
+        mStopIndex = mAdapter.getCount() - (int) scrollOutCount - 1;
+        if (mStopIndex <= inRectCandleCount) {
+            mStopIndex = (int) (inRectCandleCount);
+        }
+        if (mStopIndex > mAdapter.getCount() - 1) {
+            mStopIndex = mAdapter.getCount() - 1;
+        }
     }
 
     private Boolean isWR = false;
