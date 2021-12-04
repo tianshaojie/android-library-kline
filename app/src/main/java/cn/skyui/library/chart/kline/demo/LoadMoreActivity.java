@@ -2,37 +2,20 @@ package cn.skyui.library.chart.kline.demo;
 
 import android.content.res.Configuration;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
-import android.view.View;
-import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
-import android.widget.TextView;
 
-import cn.skyui.library.chart.kline.demo.R;
-
-import cn.skyui.library.chart.kline.view.BaseKLineChartView;
-import cn.skyui.library.chart.kline.adapter.KLineChartAdapter;
-import cn.skyui.library.chart.kline.view.KLineChartView;
-import cn.skyui.library.chart.kline.data.model.KLine;
-import cn.skyui.library.chart.kline.formatter.DateFormatter;
+import androidx.appcompat.app.AppCompatActivity;
 
 import java.util.List;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
+import cn.skyui.library.chart.kline.adapter.KLineChartAdapter;
+import cn.skyui.library.chart.kline.data.model.KLine;
+import cn.skyui.library.chart.kline.formatter.DateFormatter;
+import cn.skyui.library.chart.kline.view.BaseKLineChartView;
+import cn.skyui.library.chart.kline.view.KLineChartView;
 
 public class LoadMoreActivity extends AppCompatActivity implements KLineChartView.KChartRefreshListener {
 
-//    @BindView(R.id.title_view)
-//    RelativeLayout mTitleView;
-//    @BindView(R.id.tv_price)
-//    TextView mTvPrice;
-//    @BindView(R.id.tv_percent)
-//    TextView mTvPercent;
-//    @BindView(R.id.ll_status)
-//    LinearLayout mLlStatus;
-    @BindView(R.id.kchart_view)
     KLineChartView mKChartView;
     private KLineChartAdapter mAdapter;
 
@@ -40,12 +23,12 @@ public class LoadMoreActivity extends AppCompatActivity implements KLineChartVie
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_example_light);
-        ButterKnife.bind(this);
         initView();
         initData();
     }
 
     private void initView() {
+        mKChartView = findViewById(R.id.kchart_view);
         mAdapter = new KLineChartAdapter();
         mKChartView.setAdapter(mAdapter);
         mKChartView.setDateTimeFormatter(new DateFormatter());

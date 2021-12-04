@@ -1,8 +1,8 @@
 package cn.skyui.library.chart.kline.demo;
 
 import android.content.Context;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import cn.skyui.library.chart.kline.data.DataHelper;
 import cn.skyui.library.chart.kline.data.model.KLine;

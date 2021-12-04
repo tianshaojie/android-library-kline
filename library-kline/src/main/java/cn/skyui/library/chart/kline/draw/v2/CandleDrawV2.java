@@ -5,9 +5,9 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.v4.content.ContextCompat;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 
 import cn.skyui.library.chart.kline.R;
 import cn.skyui.library.chart.kline.base.IChartData;
@@ -152,7 +152,7 @@ public abstract class CandleDrawV2 {
         mMainScaleY = mRect.height() * 1f / (mMainMaxValue - mMainMinValue);
     }
 
-    public void drawCandle(Canvas canvas, int scrollX) {
+    public void drawCandleChart(Canvas canvas, int scrollX) {
         canvas.save();
         canvas.scale(mScaleX, 1);
         for (int i = mStartIndex; i <= mStopIndex; i++) {
@@ -168,7 +168,7 @@ public abstract class CandleDrawV2 {
     }
 
     private void drawCandleAndMaLine(@Nullable Candle prevPoint, @NonNull Candle currPoint, float prevX, float currX, @NonNull Canvas canvas) {
-        drawCandle(canvas, currX, currPoint.high, currPoint.low, currPoint.open, currPoint.close);
+        drawCandleChart(canvas, currX, currPoint.high, currPoint.low, currPoint.open, currPoint.close);
         //画ma5
         if (prevPoint != null && prevPoint.ma5Price != 0) {
             drawLine(canvas, ma5Paint, prevX, prevPoint.ma5Price, currX, currPoint.ma5Price);
@@ -193,7 +193,7 @@ public abstract class CandleDrawV2 {
      * @param open   开盘价
      * @param close  收盘价
      */
-    private void drawCandle(Canvas canvas, float x, float high, float low, float open, float close) {
+    private void drawCandleChart(Canvas canvas, float x, float high, float low, float open, float close) {
         high = getY(high);
         low = getY(low);
         open = getY(open);
@@ -252,7 +252,7 @@ public abstract class CandleDrawV2 {
     /**
      * 获取架构对应的Y坐标
      *
-     * @param value 架构
+     * @param value 价格
      * @return Y坐标
      */
     private float getY(float value) {
@@ -335,6 +335,10 @@ public abstract class CandleDrawV2 {
 
     public float getCandleWidth() {
         return mCandleWidth + mCandlePadding;
+    }
+
+    public float getCandlePadding() {
+        return mCandlePadding;
     }
 
     /**

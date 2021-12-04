@@ -2,7 +2,7 @@ package cn.skyui.library.chart.kline.demo;
 
 import android.content.res.Configuration;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatActivity;
 import android.util.Log;
 
 import java.util.List;

@@ -4,31 +4,30 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Rect;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.v4.content.ContextCompat;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 
 import cn.skyui.library.chart.kline.R;
 import cn.skyui.library.chart.kline.base.IChartData;
-import cn.skyui.library.chart.kline.base.IChartDraw;
 import cn.skyui.library.chart.kline.data.ChartEnum;
 import cn.skyui.library.chart.kline.data.model.KLine;
 import cn.skyui.library.chart.kline.data.model.Volume;
-import cn.skyui.library.chart.kline.utils.ViewUtil;
-import cn.skyui.library.chart.kline.view.BaseKLineChartView;
 
 /**
  * Volume实现类
  */
 
-public class VolumeDrawV2 implements IChartDraw<Volume> {
+public abstract class VolumeDrawV2 {
 
     private Paint mTextPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private Paint mRedPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private Paint mGreenPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private Paint ma5Paint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private Paint ma10Paint = new Paint(Paint.ANTI_ALIAS_FLAG);
-    private int pillarWidth = 0;
+
+    private float mCandleWidth = 0;
+    private float mCandlePadding = 0;
 
     private Rect mRect;
     private int mRectWidth;
@@ -36,7 +35,8 @@ public class VolumeDrawV2 implements IChartDraw<Volume> {
     public VolumeDrawV2(Context context) {
         mRedPaint.setColor(ContextCompat.getColor(context, R.color.chart_red));
         mGreenPaint.setColor(ContextCompat.getColor(context, R.color.chart_green));
-        pillarWidth = ViewUtil.dp2Px(context, 5);
+        mCandleWidth = (int) context.getResources().getDimension(R.dimen.chart_candle_width);
+        mCandlePadding = (int) context.getResources().getDimension(R.dimen.chart_candle_padding);
     }
 
     public void setRect(Rect rect) {
@@ -44,24 +44,62 @@ public class VolumeDrawV2 implements IChartDraw<Volume> {
         mRectWidth = mRect.width();
     }
 
-    @Override
-    public void drawTranslated(@Nullable Volume lastPoint, @NonNull Volume curPoint, float lastX, float curX,
-                               @NonNull Canvas canvas, @NonNull BaseKLineChartView view, int position) {
+    public abstract KLine getItem(int position);
 
-        drawHistogram(canvas, curPoint, lastPoint, curX, view, position);
-        if (lastPoint.ma5Volume != 0f) {
-            view.drawVolLine(canvas, ma5Paint, lastX, lastPoint.ma5Volume, curX, curPoint.ma5Volume);;
+    public abstract int getCount();
+
+    private Float mVolMaxValue = Float.MIN_VALUE;
+    private Float mVolMinValue = Float.MAX_VALUE;
+    private float mVolScaleY = 1;
+
+    public void calculateValue(int mStartIndex, int mStopIndex) {
+        for (int i = mStartIndex; i <= mStopIndex; i++) {
+            KLine point = (KLine) getItem(i);
+            mVolMaxValue = Math.max(mVolMaxValue, point.vol.getMaxValue());
+            mVolMinValue = Math.min(mVolMinValue, point.vol.getMinValue());
         }
-        if (lastPoint.ma10Volume != 0f) {
-            view.drawVolLine(canvas, ma10Paint, lastX, lastPoint.ma10Volume, curX, curPoint.ma10Volume);
+        if (Math.abs(mVolMaxValue) < 0.01) {
+            mVolMaxValue = 15.00f;
+        }
+        mVolScaleY = mRect.height() * 1f / (mVolMaxValue - mVolMinValue);
+    }
+
+
+    public void drawChart(Canvas canvas, int scrollX, int mStartIndex, int mStopIndex) {
+        for (int i = mStartIndex; i <= mStopIndex; i++) {
+            KLine currentPoint = getItem(i);
+            int scrollOutCount = getCount() - i;
+            float currentPointX = mRectWidth - getX(scrollOutCount) + mCandlePadding / 2 + scrollX;
+            KLine lastPoint = i == 0 ? currentPoint : getItem(i - 1);
+            float prevX = i == 0 ? currentPointX : mRectWidth - getX(scrollOutCount + 1) + mCandlePadding / 2 + scrollX;
+            drawVolChart(lastPoint.vol, currentPoint.vol, prevX, currentPointX, canvas, i);
         }
     }
 
-    private void drawHistogram(Canvas canvas, Volume curPoint, Volume lastPoint, float curX,
-                               BaseKLineChartView view, int position) {
-        float r = pillarWidth / 2;
-        float top = view.getVolY(curPoint.volume);
-        int bottom = view.getVolRect().bottom;
+    public float getX(int position) {
+        return position * (mCandleWidth + mCandlePadding);
+    }
+
+    public float getVolY(float value) {
+        return (mVolMaxValue - value) * mVolScaleY + mRect.top;
+    }
+
+    private void drawVolChart(@Nullable Volume lastPoint, @NonNull Volume curPoint, float lastX, float curX,
+                             @NonNull Canvas canvas, int position) {
+
+        drawHistogram(canvas, curPoint, lastPoint, curX, position);
+        if (lastPoint.ma5Volume != 0f) {
+            drawVolLine(canvas, ma5Paint, lastX, lastPoint.ma5Volume, curX, curPoint.ma5Volume);;
+        }
+        if (lastPoint.ma10Volume != 0f) {
+            drawVolLine(canvas, ma10Paint, lastX, lastPoint.ma10Volume, curX, curPoint.ma10Volume);
+        }
+    }
+
+    private void drawHistogram(Canvas canvas, Volume curPoint, Volume lastPoint, float curX, int position) {
+        float r = mCandleWidth / 2;
+        float top = getVolY(curPoint.volume);
+        int bottom = mRect.bottom;
         if (curPoint.closePrice >= curPoint.openPrice) {//涨
             canvas.drawRect(curX - r, top, curX + r, bottom, mRedPaint);
         } else {
@@ -70,7 +108,6 @@ public class VolumeDrawV2 implements IChartDraw<Volume> {
 
     }
 
-    @Override
     public void drawText(@NonNull Canvas canvas, @NonNull IChartData chartData, float x, float y) {
         Volume point = (Volume) chartData;
         String text = "VOL:" + KLine.getValueFormatter(ChartEnum.VOL.name()).format(point.volume) + "  ";
@@ -83,20 +120,17 @@ public class VolumeDrawV2 implements IChartDraw<Volume> {
         canvas.drawText(text, x, y, ma10Paint);
     }
 
-    private Float mVolMaxValue = Float.MAX_VALUE;
-    private Float mVolMinValue = Float.MIN_VALUE;
-    private float mVolScaleY = 1;
-
-    private void calculateValue() {
-
+    /**
+     * 在子区域画线
+     *
+     * @param startX     开始点的横坐标
+     * @param startValue 开始点的值
+     * @param stopX      结束点的横坐标
+     * @param stopValue  结束点的值
+     */
+    public void drawVolLine(Canvas canvas, Paint paint, float startX, float startValue, float stopX, float stopValue) {
+        canvas.drawLine(startX, getVolY(startValue), stopX, getVolY(stopValue), paint);
     }
-
-
-    public float getVolY(float value) {
-        return (mVolMaxValue - value) * mVolScaleY + mRect.top;
-    }
-
-
 
     /**
      * 设置 MA5 线的颜色

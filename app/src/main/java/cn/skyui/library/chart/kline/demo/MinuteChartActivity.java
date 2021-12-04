@@ -2,29 +2,23 @@ package cn.skyui.library.chart.kline.demo;
 
 import android.os.Build;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
-import android.support.v7.app.AppCompatActivity;
 import android.view.Window;
 import android.view.WindowManager;
 
-import cn.skyui.library.chart.kline.demo.R;
-
-import cn.skyui.library.chart.kline.demo.DataRequest;
-import cn.skyui.library.chart.kline.view.MinuteChartView;
-import cn.skyui.library.chart.kline.data.model.MinuteLine;
-import cn.skyui.library.chart.kline.utils.DateUtil;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
 
 import java.text.ParseException;
 import java.util.Date;
 import java.util.List;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
+import cn.skyui.library.chart.kline.data.model.MinuteLine;
+import cn.skyui.library.chart.kline.utils.DateUtil;
+import cn.skyui.library.chart.kline.view.MinuteChartView;
 
 public class MinuteChartActivity extends AppCompatActivity {
 
 
-    @BindView(R.id.minuteChartView)
     MinuteChartView mMinuteChartView;
 
     @Override
@@ -37,12 +31,12 @@ public class MinuteChartActivity extends AppCompatActivity {
                     WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS,
                     WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
         }
-        ButterKnife.bind(this);
         initView();
         initData();
     }
 
     private void initView() {
+        mMinuteChartView = findViewById(R.id.minuteChartView);
     }
 
     private void initData() {

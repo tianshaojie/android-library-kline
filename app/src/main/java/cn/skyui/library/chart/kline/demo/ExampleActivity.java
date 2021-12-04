@@ -3,16 +3,10 @@ package cn.skyui.library.chart.kline.demo;
 import android.content.res.Configuration;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatActivity;
 import android.util.Log;
-import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
-import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
-import android.widget.TextView;
-
-import cn.skyui.library.chart.kline.demo.R;
 
 import cn.skyui.library.chart.kline.view.BaseKLineChartView;
 import cn.skyui.library.chart.kline.adapter.KLineChartAdapter;
@@ -22,13 +16,9 @@ import cn.skyui.library.chart.kline.formatter.DateFormatter;
 
 import java.util.List;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
-
 public class ExampleActivity extends AppCompatActivity {
 
 
-    @BindView(R.id.kchart_view)
     KLineChartView mKChartView;
     private KLineChartAdapter mAdapter;
 
@@ -47,12 +37,12 @@ public class ExampleActivity extends AppCompatActivity {
         } else {
             setContentView(R.layout.activity_example_light);
         }
-        ButterKnife.bind(this);
         initView();
         initData();
     }
 
     private void initView() {
+        mKChartView = findViewById(R.id.kchart_view);
         mAdapter = new KLineChartAdapter();
         mKChartView.setAdapter(mAdapter);
         mKChartView.setDateTimeFormatter(new DateFormatter());

@@ -3,9 +3,9 @@ package cn.skyui.library.chart.kline.draw;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.v4.content.ContextCompat;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 
 import cn.skyui.library.chart.kline.R;
 import cn.skyui.library.chart.kline.view.BaseKLineChartView;

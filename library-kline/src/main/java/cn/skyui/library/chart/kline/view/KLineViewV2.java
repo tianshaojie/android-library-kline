@@ -8,24 +8,24 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
-import android.support.annotation.DimenRes;
-import android.support.v4.view.GestureDetectorCompat;
+import androidx.annotation.DimenRes;
+import androidx.core.view.GestureDetectorCompat;
 import android.util.AttributeSet;
 import android.view.ScaleGestureDetector;
 import android.view.View;
 import android.widget.ProgressBar;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import cn.skyui.library.chart.kline.R;
 import cn.skyui.library.chart.kline.adapter.KLineChartAdapter;
 import cn.skyui.library.chart.kline.data.ChartEnum;
 import cn.skyui.library.chart.kline.data.model.KLine;
-import cn.skyui.library.chart.kline.draw.BollDraw;
-import cn.skyui.library.chart.kline.draw.CandleDraw;
-import cn.skyui.library.chart.kline.draw.KdjDraw;
-import cn.skyui.library.chart.kline.draw.MacdDraw;
-import cn.skyui.library.chart.kline.draw.RsiDraw;
-import cn.skyui.library.chart.kline.draw.VolumeDraw;
+import cn.skyui.library.chart.kline.draw.v2.BaseChartDraw;
 import cn.skyui.library.chart.kline.draw.v2.CandleDrawV2;
+import cn.skyui.library.chart.kline.draw.v2.MacdDrawV2;
+import cn.skyui.library.chart.kline.draw.v2.VolumeDrawV2;
 
 /**
  * k线图
@@ -45,11 +45,11 @@ public class KLineViewV2 extends ScrollAndScaleView {
 
     private Rect mCandleRect;
     private CandleDrawV2 mCandleDraw;
-    private MacdDraw mMACDDraw;
-    private BollDraw mBOLLDraw;
-    private RsiDraw mRSIDraw;
-    private KdjDraw mKDJDraw;
-    private VolumeDraw mVolumeDraw;
+    private VolumeDrawV2 mVolumeDraw;
+    private MacdDrawV2 mMACDDraw;
+//    private BollDraw mBOLLDraw;
+//    private RsiDraw mRSIDraw;
+//    private KdjDraw mKDJDraw;
 
     private boolean isShowFirstChildRect;
     private float mFirstChildRectHeight;
@@ -158,6 +158,37 @@ public class KLineViewV2 extends ScrollAndScaleView {
                 return mAdapter.getCount();
             }
         };
+        mVolumeDraw = new VolumeDrawV2(getContext()) {
+            @Override
+            public KLine getItem(int position) {
+                return mAdapter.getItem(position);
+            }
+
+            @Override
+            public int getCount() {
+                return mAdapter.getCount();
+            }
+        };
+//        mMACDDraw = new MacdDrawV2(getContext()) {
+//            @Override
+//            public KLine getItem(int position) {
+//                return null;
+//            }
+//
+//            @Override
+//            public int getCount() {
+//                return 0;
+//            }
+//        };
+//        mKDJDraw = new KdjDraw(getContext());
+//        mRSIDraw = new RsiDraw(getContext());
+//        mBOLLDraw = new BollDraw(getContext());
+
+        addChildDraw(ChartEnum.MACD.name(), mMACDDraw);
+//        addChildDraw(ChartEnum.KDJ.name(), mKDJDraw);
+//        addChildDraw(ChartEnum.RSI.name(), mRSIDraw);
+//        addChildDraw(ChartEnum.BOOL.name(),mBOLLDraw);
+        setChildDraw(ChartEnum.MACD.name());
     }
 
     private void initView() {
@@ -166,12 +197,6 @@ public class KLineViewV2 extends ScrollAndScaleView {
         layoutParams.addRule(CENTER_IN_PARENT);
         addView(mProgressBar, layoutParams);
         mProgressBar.setVisibility(GONE);
-
-        mVolumeDraw = new VolumeDraw(getContext());
-        mMACDDraw = new MacdDraw(getContext());
-        mKDJDraw = new KdjDraw(getContext());
-        mRSIDraw = new RsiDraw(getContext());
-        mBOLLDraw = new BollDraw(getContext());
     }
 
     private void initRect() {
@@ -189,6 +214,9 @@ public class KLineViewV2 extends ScrollAndScaleView {
             mCandleRect = new Rect(0, 0, mWidth, (int) (mHeight - mFirstChildRectHeight));
             mFirstChildRect = new Rect(0, mCandleRect.bottom, mWidth, (int) (mCandleRect.bottom + mSecondChildRectHeight));
         }
+
+        mCandleDraw.setRect(mCandleRect);
+        mVolumeDraw.setRect(mFirstChildRect);
     }
 
     @Override
@@ -200,37 +228,89 @@ public class KLineViewV2 extends ScrollAndScaleView {
         canvas.save();
         canvas.scale(1, 1);
         canvas.drawRect(mKLineRect, mGridPaint);
-
-        mCandleDraw.setRect(mCandleRect);
         mCandleDraw.drawGird(canvas);
         mCandleDraw.calculateValue(mScrollX);
-        mCandleDraw.drawCandle(canvas, mScrollX);
-
-
+        mCandleDraw.drawCandleChart(canvas, mScrollX);
+        mVolumeDraw.calculateValue(mCandleDraw.getStartIndex(), mCandleDraw.getStopIndex());
+        mVolumeDraw.drawChart(canvas, mScrollX, mCandleDraw.getStartIndex(), mCandleDraw.getStopIndex());
         canvas.restore();
     }
 
+    private Boolean isWR = false;
+    private Boolean isShowChild = false;
+    private Boolean isShowVol = true;
 
-    private void drawVolChart(Canvas canvas) {
-        for (int i = mCandleDraw.getStartIndex(); i <= mCandleDraw.getStopIndex(); i++) {
-            KLine currentPoint = mAdapter.getItem(i); // data.get(51)
-            float currentPointX = mCandleDraw.getX(i); // 1122
-            KLine lastPoint = i == 0 ? currentPoint : mAdapter.getItem(i - 1); // data.get(50)
-            float lastX = i == 0 ? currentPointX : mCandleDraw.getX(i - 1); // 1100
-            if (mVolumeDraw != null) {
-//                mVolumeDraw.drawTranslated(lastPoint.getChildData(ChartEnum.VOL.name()), currentPoint.getChildData(ChartEnum.VOL.name()), lastX, currentPointX, canvas, this, i);
+    private BaseChartDraw mChildDraw;
+    private String mChildDrawType;
+    private Map<String, BaseChartDraw> mChildDraws = new HashMap<>();
+    private float mChildMaxValue = Float.MIN_VALUE;
+    private float mChildMinValue = Float.MAX_VALUE;
+
+    public void calculateSubChartValue(int mStartIndex, int mStopIndex) {
+        for (int i = mStartIndex; i <= mStopIndex; i++) {
+            KLine point = (KLine) mAdapter.getItem(i);
+            mChildMaxValue = Math.max(mChildMaxValue, point.getChildData(mChildDrawType).getMaxValue());
+            mChildMinValue = Math.min(mChildMinValue, point.getChildData(mChildDrawType).getMinValue());
+        }
+
+        if (Math.abs(mChildMaxValue) < 0.01 && Math.abs(mChildMinValue) < 0.01) {
+            mChildMaxValue = 1f;
+        } else if (mChildMaxValue == mChildMinValue) {
+            //当最大值和最小值都相等的时候 分别增大最大值和 减小最小值
+            mChildMaxValue += Math.abs(mChildMaxValue * 0.05f);
+            mChildMinValue -= Math.abs(mChildMinValue * 0.05f);
+            if (mChildMaxValue == 0) {
+                mChildMaxValue = 1f;
             }
-//            if (mChildDraw != null) {
-//                mChildDraw.drawTranslated(lastPoint.getChildData(mChildDrawType), currentPoint.getChildData(mChildDrawType), lastX, currentPointX, canvas, this, i);
-//            }
+        }
 
+        if (isWR) {
+            mChildMaxValue = 0f;
+            if (Math.abs(mChildMinValue) < 0.01)
+                mChildMinValue = -10.00f;
         }
     }
 
-    private void drawSubChart() {
-
+    public void drawSubChart(Canvas canvas, int scrollX, int mStartIndex, int mStopIndex) {
+        for (int i = mStartIndex; i <= mStopIndex; i++) {
+            KLine currentPoint = mAdapter.getItem(i);
+            int scrollOutCount = mAdapter.getCount() - i;
+            float currentPointX = mSecondChildRect.width() - getX(scrollOutCount) + mCandleDraw.getCandlePadding() / 2 + scrollX;
+            KLine lastPoint = i == 0 ? currentPoint : mAdapter.getItem(i - 1);
+            float prevX = i == 0 ? currentPointX : mSecondChildRect.width() - getX(scrollOutCount + 1) + mCandleDraw.getCandlePadding() / 2 + scrollX;
+            mChildDraw.drawChart(lastPoint.vol, currentPoint.vol, prevX, currentPointX, canvas, i);
+        }
     }
 
+    /**
+     * 设置子图的绘制方法
+     *
+     * @param mSelectedChartName
+     */
+    public void setChildDraw(String mSelectedChartName) {
+        this.mChildDrawType = mSelectedChartName;
+        this.mChildDraw = mChildDraws.get(mSelectedChartName);
+        if (!isShowChild) {
+            isShowChild = true;
+            initRect();
+        }
+        invalidate();
+    }
+
+    /**
+     * 给子区域添加画图方法
+     *
+     * @param name      显示的文字标签
+     * @param childDraw IChartDraw
+     */
+    public void addChildDraw(String name, BaseChartDraw childDraw) {
+        mChildDraws.put(name, childDraw);
+    }
+
+
+    public float getX(int position) {
+        return position * mCandleDraw.getCandleWidth();
+    }
 
     @Override
     protected void onScrollChanged(int l, int t, int oldl, int oldt) {
