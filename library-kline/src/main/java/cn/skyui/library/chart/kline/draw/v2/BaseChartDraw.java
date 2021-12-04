@@ -7,24 +7,34 @@ import android.graphics.Rect;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import java.util.List;
+
+import cn.skyui.library.chart.kline.R;
 import cn.skyui.library.chart.kline.base.IChartData;
+import cn.skyui.library.chart.kline.data.ChartEnum;
 import cn.skyui.library.chart.kline.data.model.KLine;
 
 public abstract class BaseChartDraw {
 
-    private Context mContext;
-    private float mChartWidth = 0;
-    private float mChartPadding = 0;
+    protected Context mContext;
+    protected ChartEnum mChartType;
+    protected List<KLine> mDateList;
 
-    private Rect mRect;
-    private int mRectWidth;
+    protected float mChartWidth = 0;
+    protected float mChartPadding = 0;
 
-    private Float mMaxValue = Float.MIN_VALUE;
-    private Float mMinValue = Float.MAX_VALUE;
-    private float mScaleY = 1;
+    protected Rect mRect;
+    protected int mRectWidth;
 
-    public BaseChartDraw(Context context) {
+    protected Float mMaxValue = Float.MIN_VALUE;
+    protected Float mMinValue = Float.MAX_VALUE;
+    protected float mScaleY = 1;
+
+    public BaseChartDraw(Context context, ChartEnum chartType) {
         mContext = context;
+        mChartType = chartType;
+        mChartWidth = (int) context.getResources().getDimension(R.dimen.chart_candle_width);
+        mChartPadding = (int) context.getResources().getDimension(R.dimen.chart_candle_padding);
     }
 
     public void setRect(Rect rect) {
@@ -32,17 +42,20 @@ public abstract class BaseChartDraw {
         mRectWidth = mRect.width();
     }
 
-    public void calculateValue(int mStartIndex, int mStopIndex) {
+    public void calculateValue(List<KLine> dataList, int mStartIndex, int mStopIndex) {
+        mDateList = dataList;
         for (int i = mStartIndex; i <= mStopIndex; i++) {
-            KLine point = (KLine) getItem(i);
-            mMaxValue = Math.max(mMaxValue, point.vol.getMaxValue());
-            mMinValue = Math.min(mMinValue, point.vol.getMinValue());
+            KLine point = (KLine) mDateList.get(i);
+            mMaxValue = Math.max(mMaxValue, point.getChildData(mChartType.name()).getMaxValue());
+            mMinValue = Math.min(mMinValue, point.getChildData(mChartType.name()).getMinValue());
         }
         if (Math.abs(mMaxValue) < 0.01) {
             mMaxValue = 15.00f;
         }
         mScaleY = mRect.height() * 1f / (mMaxValue - mMinValue);
     }
+
+    public abstract void drawChart(Canvas canvas, int scrollX, int mStartIndex, int mStopIndex);
 
     /**
      * 在子区域画线
@@ -63,13 +76,4 @@ public abstract class BaseChartDraw {
     public float getY(float value) {
         return (mMaxValue - value) * mScaleY + mRect.top;
     }
-
-    public abstract void drawChart(@Nullable IChartData lastPoint, @NonNull IChartData curPoint, float lastX, float curX, @NonNull Canvas canvas, int position);
-
-    public abstract KLine getItem(int position);
-
-    public abstract int getCount();
-
-
-
 }

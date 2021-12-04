@@ -158,28 +158,8 @@ public class KLineViewV2 extends ScrollAndScaleView {
                 return mAdapter.getCount();
             }
         };
-        mVolumeDraw = new VolumeDrawV2(getContext()) {
-            @Override
-            public KLine getItem(int position) {
-                return mAdapter.getItem(position);
-            }
-
-            @Override
-            public int getCount() {
-                return mAdapter.getCount();
-            }
-        };
-//        mMACDDraw = new MacdDrawV2(getContext()) {
-//            @Override
-//            public KLine getItem(int position) {
-//                return null;
-//            }
-//
-//            @Override
-//            public int getCount() {
-//                return 0;
-//            }
-//        };
+        mVolumeDraw = new VolumeDrawV2(getContext());
+        mMACDDraw = new MacdDrawV2(getContext());
 //        mKDJDraw = new KdjDraw(getContext());
 //        mRSIDraw = new RsiDraw(getContext());
 //        mBOLLDraw = new BollDraw(getContext());
@@ -201,22 +181,23 @@ public class KLineViewV2 extends ScrollAndScaleView {
 
     private void initRect() {
         mKLineRect = new Rect(1, 1, mWidth-1, mHeight-1);
-        if (!isShowFirstChildRect && !isShowSecondChildRect) {
-            mCandleRect = new Rect(0, 0, mWidth, mHeight);
-        } else if (isShowFirstChildRect && isShowSecondChildRect) {
+        if (isShowFirstChildRect && isShowSecondChildRect) {
             mCandleRect = new Rect(0, 0, mWidth, (int) (mHeight - mFirstChildRectHeight - mSecondChildRectHeight));
             mFirstChildRect = new Rect(0, mCandleRect.bottom, mWidth, (int) (mCandleRect.bottom + mFirstChildRectHeight));
             mSecondChildRect = new Rect(0, mFirstChildRect.bottom, mWidth, (int) (mFirstChildRect.bottom + mSecondChildRectHeight));
         } else if(isShowFirstChildRect) {
             mCandleRect = new Rect(0, 0, mWidth, (int) (mHeight - mFirstChildRectHeight));
             mFirstChildRect = new Rect(0, mCandleRect.bottom, mWidth, (int) (mCandleRect.bottom + mFirstChildRectHeight));
-        } else {
+        } else if(isShowSecondChildRect) {
             mCandleRect = new Rect(0, 0, mWidth, (int) (mHeight - mFirstChildRectHeight));
-            mFirstChildRect = new Rect(0, mCandleRect.bottom, mWidth, (int) (mCandleRect.bottom + mSecondChildRectHeight));
+            mSecondChildRect = new Rect(0, mCandleRect.bottom, mWidth, (int) (mCandleRect.bottom + mSecondChildRectHeight));
+        } if (!isShowFirstChildRect && !isShowSecondChildRect) {
+            mCandleRect = new Rect(0, 0, mWidth, mHeight);
         }
 
         mCandleDraw.setRect(mCandleRect);
         mVolumeDraw.setRect(mFirstChildRect);
+        mMACDDraw.setRect(mSecondChildRect);
     }
 
     @Override
@@ -231,8 +212,12 @@ public class KLineViewV2 extends ScrollAndScaleView {
         mCandleDraw.drawGird(canvas);
         mCandleDraw.calculateValue(mScrollX);
         mCandleDraw.drawCandleChart(canvas, mScrollX);
-        mVolumeDraw.calculateValue(mCandleDraw.getStartIndex(), mCandleDraw.getStopIndex());
+
+        mVolumeDraw.calculateValue(mAdapter.getItems(), mCandleDraw.getStartIndex(), mCandleDraw.getStopIndex());
         mVolumeDraw.drawChart(canvas, mScrollX, mCandleDraw.getStartIndex(), mCandleDraw.getStopIndex());
+
+        mMACDDraw.calculateValue(mAdapter.getItems(), mCandleDraw.getStartIndex(), mCandleDraw.getStopIndex());
+        mMACDDraw.drawChart(canvas, mScrollX, mCandleDraw.getStartIndex(), mCandleDraw.getStopIndex());
         canvas.restore();
     }
 
@@ -278,7 +263,7 @@ public class KLineViewV2 extends ScrollAndScaleView {
             float currentPointX = mSecondChildRect.width() - getX(scrollOutCount) + mCandleDraw.getCandlePadding() / 2 + scrollX;
             KLine lastPoint = i == 0 ? currentPoint : mAdapter.getItem(i - 1);
             float prevX = i == 0 ? currentPointX : mSecondChildRect.width() - getX(scrollOutCount + 1) + mCandleDraw.getCandlePadding() / 2 + scrollX;
-            mChildDraw.drawChart(lastPoint.vol, currentPoint.vol, prevX, currentPointX, canvas, i);
+//            mChildDraw.drawChart(lastPoint.vol, currentPoint.vol, prevX, currentPointX, canvas, i);
         }
     }
 

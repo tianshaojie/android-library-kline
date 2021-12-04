@@ -3,7 +3,7 @@ package cn.skyui.library.chart.kline.draw.v2;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
-import android.graphics.Rect;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
@@ -18,7 +18,7 @@ import cn.skyui.library.chart.kline.data.model.Volume;
  * Volume实现类
  */
 
-public abstract class VolumeDrawV2 {
+public class VolumeDrawV2 extends BaseChartDraw {
 
     private Paint mTextPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private Paint mRedPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -26,62 +26,22 @@ public abstract class VolumeDrawV2 {
     private Paint ma5Paint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private Paint ma10Paint = new Paint(Paint.ANTI_ALIAS_FLAG);
 
-    private float mCandleWidth = 0;
-    private float mCandlePadding = 0;
-
-    private Rect mRect;
-    private int mRectWidth;
-
     public VolumeDrawV2(Context context) {
+        super(context, ChartEnum.VOL);
         mRedPaint.setColor(ContextCompat.getColor(context, R.color.chart_red));
         mGreenPaint.setColor(ContextCompat.getColor(context, R.color.chart_green));
-        mCandleWidth = (int) context.getResources().getDimension(R.dimen.chart_candle_width);
-        mCandlePadding = (int) context.getResources().getDimension(R.dimen.chart_candle_padding);
     }
 
-    public void setRect(Rect rect) {
-        mRect = rect;
-        mRectWidth = mRect.width();
-    }
-
-    public abstract KLine getItem(int position);
-
-    public abstract int getCount();
-
-    private Float mVolMaxValue = Float.MIN_VALUE;
-    private Float mVolMinValue = Float.MAX_VALUE;
-    private float mVolScaleY = 1;
-
-    public void calculateValue(int mStartIndex, int mStopIndex) {
-        for (int i = mStartIndex; i <= mStopIndex; i++) {
-            KLine point = (KLine) getItem(i);
-            mVolMaxValue = Math.max(mVolMaxValue, point.vol.getMaxValue());
-            mVolMinValue = Math.min(mVolMinValue, point.vol.getMinValue());
-        }
-        if (Math.abs(mVolMaxValue) < 0.01) {
-            mVolMaxValue = 15.00f;
-        }
-        mVolScaleY = mRect.height() * 1f / (mVolMaxValue - mVolMinValue);
-    }
-
-
+    @Override
     public void drawChart(Canvas canvas, int scrollX, int mStartIndex, int mStopIndex) {
         for (int i = mStartIndex; i <= mStopIndex; i++) {
-            KLine currentPoint = getItem(i);
-            int scrollOutCount = getCount() - i;
-            float currentPointX = mRectWidth - getX(scrollOutCount) + mCandlePadding / 2 + scrollX;
-            KLine lastPoint = i == 0 ? currentPoint : getItem(i - 1);
-            float prevX = i == 0 ? currentPointX : mRectWidth - getX(scrollOutCount + 1) + mCandlePadding / 2 + scrollX;
+            KLine currentPoint = mDateList.get(i);
+            int scrollOutCount = mDateList.size() - i;
+            float currentPointX = mRectWidth - getX(scrollOutCount) + mChartPadding / 2 + scrollX;
+            KLine lastPoint = i == 0 ? currentPoint : mDateList.get(i - 1);
+            float prevX = i == 0 ? currentPointX : mRectWidth - getX(scrollOutCount + 1) + mChartPadding / 2 + scrollX;
             drawVolChart(lastPoint.vol, currentPoint.vol, prevX, currentPointX, canvas, i);
         }
-    }
-
-    public float getX(int position) {
-        return position * (mCandleWidth + mCandlePadding);
-    }
-
-    public float getVolY(float value) {
-        return (mVolMaxValue - value) * mVolScaleY + mRect.top;
     }
 
     private void drawVolChart(@Nullable Volume lastPoint, @NonNull Volume curPoint, float lastX, float curX,
@@ -97,8 +57,8 @@ public abstract class VolumeDrawV2 {
     }
 
     private void drawHistogram(Canvas canvas, Volume curPoint, Volume lastPoint, float curX, int position) {
-        float r = mCandleWidth / 2;
-        float top = getVolY(curPoint.volume);
+        float r = mChartWidth / 2;
+        float top = getY(curPoint.volume);
         int bottom = mRect.bottom;
         if (curPoint.closePrice >= curPoint.openPrice) {//涨
             canvas.drawRect(curX - r, top, curX + r, bottom, mRedPaint);
@@ -129,7 +89,7 @@ public abstract class VolumeDrawV2 {
      * @param stopValue  结束点的值
      */
     public void drawVolLine(Canvas canvas, Paint paint, float startX, float startValue, float stopX, float stopValue) {
-        canvas.drawLine(startX, getVolY(startValue), stopX, getVolY(stopValue), paint);
+        canvas.drawLine(startX, getY(startValue), stopX, getY(stopValue), paint);
     }
 
     /**
