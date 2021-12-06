@@ -64,8 +64,8 @@ public class MacdDrawV2 extends BaseChartDraw {
         }
     }
 
-    private void drawText(@NonNull Canvas canvas, @NonNull IChartData chartData, float x, float y) {
-        Macd point = (Macd) chartData;
+    public void drawText(@NonNull Canvas canvas, @NonNull KLine chartData, float x, float y) {
+        Macd point = chartData.macd;
         String text = "MACD(12,26,9)  ";
         canvas.drawText(text, x, y, mTextPaint);
         x += mTextPaint.measureText(text);

@@ -4,7 +4,6 @@ import android.content.res.Configuration;
 import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
 import android.util.Log;
-
 import java.util.List;
 
 import cn.skyui.library.chart.kline.adapter.KLineChartAdapter;
@@ -30,12 +29,7 @@ public class MyExampleActivity extends AppCompatActivity {
         klineViewV2 = findViewById(R.id.kline_view);
         klineViewV2.setAdapter(mAdapter);
         klineViewV2.showLoading();
-        klineViewV2.setRefreshListener(new KLineViewV2.KChartRefreshListener() {
-            @Override
-            public void onLoadMore(KLineViewV2 chart) {
-                onLoadMoreBegin(chart);
-            }
-        });
+        klineViewV2.setRefreshListener(chart -> onLoadMoreBegin(chart));
     }
 
     private void initData() {
@@ -43,37 +37,31 @@ public class MyExampleActivity extends AppCompatActivity {
     }
 
     public void onLoadMoreBegin(KLineViewV2 chart) {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                final List<KLine> data = DataRequest.getData(MyExampleActivity.this, mAdapter.getCount(), 100);
-                try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                if (!data.isEmpty()) {
-                    Log.i("onLoadMoreBegin", "start:" + data.get(0).date + " stop:" + data.get(data.size() - 1).date);
-                }
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        //第一次加载时开始动画
-                        if (mAdapter.getCount() == 0) {
-                            klineViewV2.startAnimation();
-                        }
-                        mAdapter.addFooterData(data);
-                        //加载完成，还有更多数据
-                        if (data.size() > 0) {
-                            klineViewV2.refreshComplete();
-                        }
-                        //加载完成，没有更多数据
-                        else {
-                            klineViewV2.refreshEnd();
-                        }
-                    }
-                });
+        new Thread(() -> {
+            final List<KLine> data = DataRequest.getData(MyExampleActivity.this, mAdapter.getCount(), 300);
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
+            if (!data.isEmpty()) {
+                Log.i("onLoadMoreBegin", "start:" + data.get(0).date + " stop:" + data.get(data.size() - 1).date);
+            }
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    //第一次加载时开始动画
+                    if (mAdapter.getCount() == 0) {
+                        klineViewV2.startAnimation();
+                    }
+                    mAdapter.addFooterData(data);
+                    if (data.size() > 0) { //加载完成，还有更多数据
+                        klineViewV2.refreshComplete();
+                    } else { //加载完成，没有更多数据
+                        klineViewV2.refreshEnd();
+                    }
+                }
+            });
         }).start();
     }
 

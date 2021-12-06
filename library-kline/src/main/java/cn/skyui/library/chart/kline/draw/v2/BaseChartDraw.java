@@ -2,6 +2,7 @@ package cn.skyui.library.chart.kline.draw.v2;
 
 import android.content.Context;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
 
@@ -27,6 +28,8 @@ public abstract class BaseChartDraw {
 
     protected Rect mRect;
     protected int mRectWidth;
+    protected int mTopPadding;
+    protected Paint mGridPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 
     protected float mMaxValue = Float.MIN_VALUE;
     protected float mMinValue = Float.MAX_VALUE;
@@ -37,8 +40,13 @@ public abstract class BaseChartDraw {
     public BaseChartDraw(Context context, ChartEnum chartType) {
         mContext = context;
         mChartType = chartType;
+        mGridPaint.setAntiAlias(true);
+        mGridPaint.setColor(Color.GRAY);
+        mGridPaint.setStyle(Paint.Style.STROKE);
+        mGridPaint.setStrokeWidth(context.getResources().getDimension(R.dimen.chart_line_width));
         mChartWidth = (int) context.getResources().getDimension(R.dimen.chart_candle_width);
         mChartPadding = (int) context.getResources().getDimension(R.dimen.chart_candle_padding);
+        mTopPadding = (int) context.getResources().getDimension(R.dimen.chart_top_padding);
     }
 
     public void setRect(Rect rect) {
@@ -60,19 +68,23 @@ public abstract class BaseChartDraw {
         if (Math.abs(mMaxValue) < 0.01) {
             mMaxValue = 15.00f;
         }
-        mScaleY = mRect.height() * 1f / (mMaxValue - mMinValue);
+        mScaleY = (mRect.height() - mTopPadding) * 1f / (mMaxValue - mMinValue);
     }
 
     public void onDraw(Canvas canvas, int scrollX) {
-        if(mRect == null || mDateList == null || mDateList.size() == 0) {
+        if (mRect == null || mDateList == null || mDateList.size() == 0) {
             return;
         }
+        // 顶部线
+        float paintWidth = mGridPaint.getStrokeWidth() / 2;
+        canvas.drawLine(0, mRect.bottom - paintWidth, mRect.width(), mRect.bottom - paintWidth, mGridPaint);
+        // 画屏幕内的数据图表
         for (int i = mStartIndex; i <= mStopIndex; i++) {
             KLine currentPoint = mDateList.get(i);
-            int scrollOutCount = mDateList.size() - i;
-            float currentPointX = mRectWidth - getX(scrollOutCount) + mChartPadding / 2 + scrollX;
+            int rightSidePointCount = mDateList.size() - i;
+            float currentPointX = mRectWidth + scrollX - getX(rightSidePointCount) + mChartPadding / 2;
             KLine prevPoint = i == 0 ? currentPoint : mDateList.get(i - 1);
-            float prevX = i == 0 ? currentPointX : mRectWidth - getX(scrollOutCount + 1) + mChartPadding / 2 + scrollX;
+            float prevX = i == 0 ? currentPointX : mRectWidth + scrollX - getX(rightSidePointCount + 1) + mChartPadding / 2;
             drawChart(canvas, prevPoint, currentPoint, prevX, currentPointX);
         }
     }
@@ -108,6 +120,14 @@ public abstract class BaseChartDraw {
      * @return Y坐标
      */
     protected float getY(float value) {
-        return (mMaxValue - value) * mScaleY + mRect.top;
+        return (mMaxValue - value) * mScaleY + mRect.top + mTopPadding;
+    }
+
+    public int getTopPadding() {
+        return mTopPadding;
+    }
+
+    public void setTopPadding(int topPadding) {
+        this.mTopPadding = topPadding;
     }
 }

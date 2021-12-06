@@ -13,7 +13,9 @@ import android.view.ScaleGestureDetector;
 import android.view.View;
 import android.widget.ProgressBar;
 
+import androidx.annotation.ColorRes;
 import androidx.annotation.DimenRes;
+import androidx.core.content.ContextCompat;
 import androidx.core.view.GestureDetectorCompat;
 
 import java.util.HashMap;
@@ -22,6 +24,7 @@ import java.util.Map;
 import cn.skyui.library.chart.kline.R;
 import cn.skyui.library.chart.kline.adapter.KLineChartAdapter;
 import cn.skyui.library.chart.kline.data.ChartEnum;
+import cn.skyui.library.chart.kline.data.model.KLine;
 import cn.skyui.library.chart.kline.draw.v2.BaseChartDraw;
 import cn.skyui.library.chart.kline.draw.v2.BollDrawV2;
 import cn.skyui.library.chart.kline.draw.v2.CandleDrawV2;
@@ -38,11 +41,24 @@ public class KLineViewV2 extends ScrollAndScaleView {
     private KLineChartAdapter mAdapter;
     private int mStartIndex = 0; // 可见区域数据List的开始索引位置
     private int mStopIndex = 0;  // 可见区域数据List的结束索引位置
+    private int mSelectedIndex;
 
     private int mWidth = 0;
     private int mHeight = 0;
-    private Rect mKLineRect;
+
     private Paint mGridPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private Paint mTextPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private Paint mMaxMinPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+
+    // 长按浮窗
+    private Paint mSelectorWindowTextPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private Paint mSelectorWindowBackgroundPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+
+    // 长按十字线/文字
+    private Paint mSelectedXLinePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private Paint mSelectedYLinePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private Paint mSelectedPointPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private Paint mSelectorFramePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 
     private Rect mCandleRect;
     private CandleDrawV2 mCandleDraw;
@@ -52,19 +68,16 @@ public class KLineViewV2 extends ScrollAndScaleView {
     private RsiDrawV2 mRSIDraw;
     private BollDrawV2 mBOLLDraw;
 
-    private Boolean isShowChild = false;
-    private Boolean isShowVol = true;
-
     private BaseChartDraw mChildDraw;
     private Map<String, BaseChartDraw> mChildDraws = new HashMap<>();
 
-    private boolean isShowFirstChildRect;
-    private float mFirstChildRectHeight;
-    private Rect mFirstChildRect;
+    private boolean isShowVol = true;
+    private float mVolRectHeight;
+    private Rect mVolRect;
 
-    private boolean isShowSecondChildRect;
-    private float mSecondChildRectHeight;
-    private Rect mSecondChildRect;
+    private boolean isShowChild = true;
+    private float mChildRectHeight;
+    private Rect mChildRect;
 
     private ValueAnimator mAnimator;
     private long mAnimationDuration = 500;
@@ -100,29 +113,82 @@ public class KLineViewV2 extends ScrollAndScaleView {
 
     public KLineViewV2(Context context, AttributeSet attrs) {
         super(context, attrs);
-        initAttrs(attrs);
         init();
+        initAttrs(attrs);
     }
 
     public KLineViewV2(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-        initAttrs(attrs);
         init();
+        initAttrs(attrs);
     }
 
     private void initAttrs(AttributeSet attrs) {
         TypedArray array = getContext().obtainStyledAttributes(attrs, R.styleable.KChartView);
-        if (array != null) {
-            try {
-                setShowFirstChildRect(array.getBoolean(R.styleable.KLineView_kv_is_show_first_child_rect, true));
-                setFirstChildRectHeight(array.getDimension(R.styleable.KLineView_kv_first_child_rect_height, getDimension(R.dimen.kline_first_child_rect_height)));
-                setShowSecondChildRect(array.getBoolean(R.styleable.KLineView_kv_is_show_second_child_rect, true));
-                setSecondChildRectHeight(array.getDimension(R.styleable.KLineView_kv_second_child_rect_height, getDimension(R.dimen.kline_second_child_rect_height)));
-            } catch (Exception e) {
-                e.printStackTrace();
-            } finally {
-                array.recycle();
-            }
+        if (array == null) {
+            return;
+        }
+        try {
+            // kline
+            setShowVol(array.getBoolean(R.styleable.KLineView_kline_is_show_vol_rect, true));
+            setVolRectHeight(array.getDimension(R.styleable.KLineView_kline_vol_rect_height, getDimension(R.dimen.kline_vol_rect_height)));
+            setShowChild(array.getBoolean(R.styleable.KLineView_kline_is_show_child_rect, true));
+            setChildRectHeight(array.getDimension(R.styleable.KLineView_kline_child_rect_height, getDimension(R.dimen.kline_child_rect_height)));
+            // 背景色
+            setBackgroundColor(array.getColor(R.styleable.KLineView_kline_background_color, getColor(R.color.chart_background)));
+            // 坐标格线条颜色宽度
+            setGridLineWidth(array.getDimension(R.styleable.KLineView_kline_grid_line_width, getDimension(R.dimen.chart_grid_line_width)));
+            setGridLineColor(array.getColor(R.styleable.KLineView_kline_grid_line_color, getColor(R.color.chart_grid_line)));
+            // 各类曲线宽度
+            setLineWidth(array.getDimension(R.styleable.KLineView_kline_line_width, getDimension(R.dimen.chart_line_width)));
+            // 单个日期点的宽度
+            setPointWidth(array.getDimension(R.styleable.KLineView_kline_point_width, getDimension(R.dimen.chart_point_width)));
+            // 默认字体大小颜色
+            setTextSize(array.getDimension(R.styleable.KLineView_kline_text_size, getDimension(R.dimen.chart_text_size)));
+            setTextColor(array.getColor(R.styleable.KLineView_kline_text_color, getColor(R.color.chart_text)));
+            // 设置最大值/最小值文字大小颜色
+            setMaxMinTextSize(array.getDimension(R.styleable.KLineView_kline_max_min_text_size, getDimension(R.dimen.chart_max_min_text_size)));
+            setMaxMinTextColor(array.getColor(R.styleable.KLineView_kline_max_min_text_color, getColor(R.color.chart_max_min_text)));
+            // 选中十字线颜色宽度
+            setSelectedXLineColor(array.getColor(R.styleable.KLineView_kline_selected_x_line_color, getColor(R.color.chart_selected_x_line_color)));
+            setSelectedXLineWidth(array.getDimension(R.styleable.KLineView_kline_selected_x_line_width, getDimension(R.dimen.chart_selected_x_line_width)));
+            setSelectedYLineColor(array.getColor(R.styleable.KLineView_kline_selected_y_line_color, getColor(R.color.chart_selected_y_line_color)));
+            setSelectedYLineWidth(array.getDimension(R.styleable.KLineView_kline_selected_y_line_width, getDimension(R.dimen.chart_selected_y_line_width)));
+            // 选中十字线文字框的背景色
+            setSelectedPointTextBackgroundColor(array.getColor(R.styleable.KLineView_kline_selected_point_text_bg_color, getColor(R.color.chart_selected_point_text_bg_color)));
+            // 选中浮窗背景色字体色
+            setSelectorWindowBackgroundColor(array.getColor(R.styleable.KLineView_kline_selector_window_bg_color, getColor(R.color.chart_selector_window_bg_color)));
+            setSelectorWindowTextSize(array.getDimension(R.styleable.KLineView_kline_selected_window_text_size, getDimension(R.dimen.chart_selected_window_text_size)));
+
+            //candle
+            setMa5Color(array.getColor(R.styleable.KLineView_kline_dif_color, getColor(R.color.chart_ma5)));
+            setMa10Color(array.getColor(R.styleable.KLineView_kline_dea_color, getColor(R.color.chart_ma10)));
+            setMa20Color(array.getColor(R.styleable.KLineView_kline_macd_color, getColor(R.color.chart_ma20)));
+            setCandleWidth(array.getDimension(R.styleable.KLineView_kline_candle_width, getDimension(R.dimen.chart_candle_width)));
+            setCandleLineWidth(array.getDimension(R.styleable.KLineView_kline_candle_line_width, getDimension(R.dimen.chart_candle_line_width)));
+            setCandleSolid(array.getBoolean(R.styleable.KLineView_kline_candle_solid, true));
+
+            //macd
+            setMACDWidth(array.getDimension(R.styleable.KLineView_kline_macd_width, getDimension(R.dimen.chart_candle_width)));
+            setDIFColor(array.getColor(R.styleable.KLineView_kline_dif_color, getColor(R.color.chart_ma5)));
+            setDEAColor(array.getColor(R.styleable.KLineView_kline_dea_color, getColor(R.color.chart_ma10)));
+            setMACDColor(array.getColor(R.styleable.KLineView_kline_macd_color, getColor(R.color.chart_ma20)));
+            //kdj
+            setKColor(array.getColor(R.styleable.KLineView_kline_dif_color, getColor(R.color.chart_ma5)));
+            setDColor(array.getColor(R.styleable.KLineView_kline_dea_color, getColor(R.color.chart_ma10)));
+            setJColor(array.getColor(R.styleable.KLineView_kline_macd_color, getColor(R.color.chart_ma20)));
+            //rsi
+            setRSI1Color(array.getColor(R.styleable.KLineView_kline_dif_color, getColor(R.color.chart_ma5)));
+            setRSI2Color(array.getColor(R.styleable.KLineView_kline_dea_color, getColor(R.color.chart_ma10)));
+            setRSI3Color(array.getColor(R.styleable.KLineView_kline_macd_color, getColor(R.color.chart_ma20)));
+            //boll
+            setUpColor(array.getColor(R.styleable.KLineView_kline_dif_color, getColor(R.color.chart_ma5)));
+            setMbColor(array.getColor(R.styleable.KLineView_kline_dea_color, getColor(R.color.chart_ma10)));
+            setDnColor(array.getColor(R.styleable.KLineView_kline_macd_color, getColor(R.color.chart_ma20)));
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            array.recycle();
         }
     }
 
@@ -132,11 +198,11 @@ public class KLineViewV2 extends ScrollAndScaleView {
         this.mWidth = w;
         this.mHeight = h;
         float oneThirdHeight = mHeight / 3.0f;
-        if (mFirstChildRectHeight > oneThirdHeight) {
-            mFirstChildRectHeight = oneThirdHeight;
+        if (mVolRectHeight > oneThirdHeight) {
+            mVolRectHeight = oneThirdHeight;
         }
-        if (mSecondChildRectHeight > oneThirdHeight) {
-            mSecondChildRectHeight = oneThirdHeight;
+        if (mChildRectHeight > oneThirdHeight) {
+            mChildRectHeight = oneThirdHeight;
         }
         initRect();
         initView();
@@ -181,38 +247,40 @@ public class KLineViewV2 extends ScrollAndScaleView {
     }
 
     private void initRect() {
-        mKLineRect = new Rect(1, 1, mWidth-1, mHeight-1);
-        if (isShowFirstChildRect && isShowSecondChildRect) {
-            mCandleRect = new Rect(0, 0, mWidth, (int) (mHeight - mFirstChildRectHeight - mSecondChildRectHeight));
-            mFirstChildRect = new Rect(0, mCandleRect.bottom, mWidth, (int) (mCandleRect.bottom + mFirstChildRectHeight));
-            mSecondChildRect = new Rect(0, mFirstChildRect.bottom, mWidth, (int) (mFirstChildRect.bottom + mSecondChildRectHeight));
-        } else if(isShowFirstChildRect) {
-            mCandleRect = new Rect(0, 0, mWidth, (int) (mHeight - mFirstChildRectHeight));
-            mFirstChildRect = new Rect(0, mCandleRect.bottom, mWidth, (int) (mCandleRect.bottom + mFirstChildRectHeight));
-        } else if(isShowSecondChildRect) {
-            mCandleRect = new Rect(0, 0, mWidth, (int) (mHeight - mFirstChildRectHeight));
-            mSecondChildRect = new Rect(0, mCandleRect.bottom, mWidth, (int) (mCandleRect.bottom + mSecondChildRectHeight));
-        } if (!isShowFirstChildRect && !isShowSecondChildRect) {
+        if (isShowVol && isShowChild) {
+            mCandleRect = new Rect(0, 0, mWidth, (int) (mHeight - mVolRectHeight - mChildRectHeight));
+            mVolRect = new Rect(0, mCandleRect.bottom, mWidth, (int) (mCandleRect.bottom + mVolRectHeight));
+            mChildRect = new Rect(0, mVolRect.bottom, mWidth, (int) (mVolRect.bottom + mChildRectHeight));
+        } else if(isShowVol) {
+            mCandleRect = new Rect(0, 0, mWidth, (int) (mHeight - mVolRectHeight));
+            mVolRect = new Rect(0, mCandleRect.bottom, mWidth, (int) (mCandleRect.bottom + mVolRectHeight));
+        } else if(isShowChild) {
+            mCandleRect = new Rect(0, 0, mWidth, (int) (mHeight - mVolRectHeight));
+            mChildRect = new Rect(0, mCandleRect.bottom, mWidth, (int) (mCandleRect.bottom + mChildRectHeight));
+        } if (!isShowVol && !isShowChild) {
             mCandleRect = new Rect(0, 0, mWidth, mHeight);
         }
 
         mCandleDraw.setRect(mCandleRect);
-        mVolumeDraw.setRect(mFirstChildRect);
-        mMACDDraw.setRect(mSecondChildRect);
-        mKDJDraw.setRect(mSecondChildRect);
-        mRSIDraw.setRect(mSecondChildRect);
-        mBOLLDraw.setRect(mSecondChildRect);
+        mVolumeDraw.setRect(mVolRect);
+        mMACDDraw.setRect(mChildRect);
+        mKDJDraw.setRect(mChildRect);
+        mRSIDraw.setRect(mChildRect);
+        mBOLLDraw.setRect(mChildRect);
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
+        canvas.drawColor(mBackgroundPaint.getColor());
         if (mWidth == 0 || mCandleRect.height() == 0 || mItemCount == 0) {
             return;
         }
         canvas.save();
         canvas.scale(1, 1);
-        canvas.drawRect(mKLineRect, mGridPaint);
+        float paintWidth = mGridPaint.getStrokeWidth()/2;
+        canvas.drawLine(paintWidth, 0, paintWidth, mHeight, mGridPaint);
+        canvas.drawLine(mWidth-paintWidth, 0, mWidth-paintWidth, mHeight, mGridPaint);
 
         calculateValue(mScrollX);
 
@@ -234,6 +302,7 @@ public class KLineViewV2 extends ScrollAndScaleView {
 //        mBOLLDraw.calculateValue(mAdapter.getItems(), mStartIndex, mStopIndex);
 //        mBOLLDraw.drawChart(canvas, mScrollX);
 
+        drawValue(canvas, isLongPress ? mSelectedIndex : mStopIndex);
         canvas.restore();
     }
 
@@ -255,6 +324,43 @@ public class KLineViewV2 extends ScrollAndScaleView {
         }
         if (mStopIndex > mAdapter.getCount() - 1) {
             mStopIndex = mAdapter.getCount() - 1;
+        }
+    }
+
+    private void calculateSelectedX(float x) {
+//        mSelectedIndex = indexOfTranslateX(xToTranslateX(x));
+        if (mSelectedIndex < mStartIndex) {
+            mSelectedIndex = mStartIndex;
+        }
+        if (mSelectedIndex > mStopIndex) {
+            mSelectedIndex = mStopIndex;
+        }
+    }
+
+    /**
+     * 画值
+     *
+     * @param canvas
+     * @param position 显示某个点的值
+     */
+    private void drawValue(Canvas canvas, int position) {
+        Paint.FontMetrics fm = mTextPaint.getFontMetrics();
+        float textHeight = fm.descent - fm.ascent;
+        if (position >= 0 && position < mItemCount) {
+            KLine point = (KLine) mAdapter.getItem(position);
+            if (mCandleDraw != null) {
+                float y = mCandleRect.top + mCandleDraw.getTopPadding() - textHeight/2;
+                float x = 0;
+                mCandleDraw.drawText(canvas, point, x, y);
+            }
+            if (mVolumeDraw != null) {
+                float y = mVolRect.top + mVolumeDraw.getTopPadding() - textHeight/2;
+                mVolumeDraw.drawText(canvas, point, 0, y);
+            }
+            if (mMACDDraw != null) {
+                float y = mChildRect.top + mMACDDraw.getTopPadding() - textHeight/2;
+                mMACDDraw.drawText(canvas, point, 0, y);
+            }
         }
     }
 
@@ -397,7 +503,6 @@ public class KLineViewV2 extends ScrollAndScaleView {
         float mDataLen = (mItemCount - 1) * mCandleDraw.getCandleWidth();
         return (int) (mDataLen - mWidth / mScaleX + mCandleDraw.getCandleWidth() / 2);
     }
-
     /**
      * 设置刷新监听
      */
@@ -409,25 +514,289 @@ public class KLineViewV2 extends ScrollAndScaleView {
         return getResources().getDimension(resId);
     }
 
-    public void setShowFirstChildRect(boolean showFirstChildRect) {
-        isShowFirstChildRect = showFirstChildRect;
-    }
-
-    public void setShowSecondChildRect(boolean showSecondChildRect) {
-        isShowSecondChildRect = showSecondChildRect;
+    private int getColor(@ColorRes int resId) {
+        return ContextCompat.getColor(getContext(), resId);
     }
 
 
-    public void setFirstChildRectHeight(float mFirstChildRectHeight) {
-        this.mFirstChildRectHeight = mFirstChildRectHeight;
+    public void setShowVol(boolean showVol) {
+        isShowVol = showVol;
     }
 
-    public void setSecondChildRectHeight(float mSecondChildRectHeight) {
-        this.mSecondChildRectHeight = mSecondChildRectHeight;
+    public void setShowChild(boolean showChild) {
+        isShowChild = showChild;
+    }
+
+
+    public void setVolRectHeight(float volRectHeight) {
+        this.mVolRectHeight = volRectHeight;
+    }
+
+    public void setChildRectHeight(float childRectHeight) {
+        this.mChildRectHeight = childRectHeight;
     }
 
     public int dp2px(float dp) {
         final float scale = getContext().getResources().getDisplayMetrics().density;
         return (int) (dp * scale + 0.5f);
     }
+
+    public void setTextSize(float textSize) {
+        mCandleDraw.setTextSize(textSize);
+        mBOLLDraw.setTextSize(textSize);
+        mRSIDraw.setTextSize(textSize);
+        mMACDDraw.setTextSize(textSize);
+        mKDJDraw.setTextSize(textSize);
+        mVolumeDraw.setTextSize(textSize);
+    }
+
+    public void setLineWidth(float lineWidth) {
+        mCandleDraw.setLineWidth(lineWidth);
+        mBOLLDraw.setLineWidth(lineWidth);
+        mRSIDraw.setLineWidth(lineWidth);
+        mMACDDraw.setLineWidth(lineWidth);
+        mKDJDraw.setLineWidth(lineWidth);
+        mVolumeDraw.setLineWidth(lineWidth);
+    }
+
+    public void setTextColor(int color) {
+        mVolumeDraw.setTextColor(color);
+        mMACDDraw.setTextColor(color);
+    }
+
+    /**
+     * 设置表格线宽度
+     */
+    public void setGridLineWidth(float width) {
+        mGridPaint.setStrokeWidth(width);
+    }
+
+    /**
+     * 设置表格线颜色
+     */
+    public void setGridLineColor(int color) {
+        mGridPaint.setColor(color);
+    }
+
+    private float mPointWidth = 6;
+    /**
+     * 设置每个点的宽度
+     */
+    public void setPointWidth(float pointWidth) {
+        mPointWidth = pointWidth;
+    }
+
+    /**
+     * 设置最大值/最小值文字颜色
+     */
+    public void setMaxMinTextColor(int color) {
+        mMaxMinPaint.setColor(color);
+    }
+
+    /**
+     * 设置最大值/最小值文字大小
+     */
+    public void setMaxMinTextSize(float textSize) {
+        mMaxMinPaint.setTextSize(textSize);
+    }
+
+    private Paint mBackgroundPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    /**
+     * 设置背景颜色
+     */
+    public void setBackgroundColor(int color) {
+        mBackgroundPaint.setColor(color);
+    }
+
+    /**
+     * 设置选中point 值显示背景
+     */
+    public void setSelectedPointTextBackgroundColor(int color) {
+        mSelectedPointPaint.setColor(color);
+    }
+
+    /**
+     * 设置选择器横线宽度
+     */
+    public void setSelectedXLineWidth(float width) {
+        mSelectedXLinePaint.setStrokeWidth(width);
+    }
+
+    /**
+     * 设置选择器横线颜色
+     */
+    public void setSelectedXLineColor(int color) {
+        mSelectedXLinePaint.setColor(color);
+    }
+
+    /**
+     * 设置选择器竖线宽度
+     */
+    public void setSelectedYLineWidth(float width) {
+        mSelectedYLinePaint.setStrokeWidth(width);
+    }
+
+    /**
+     * 设置选择器竖线颜色
+     */
+    public void setSelectedYLineColor(int color) {
+        mSelectedYLinePaint.setColor(color);
+    }
+
+    /**
+     * 设置选择器文字大小
+     * @param textSize
+     */
+    public void setSelectorWindowTextSize(float textSize){
+        mSelectorWindowTextPaint.setTextSize(textSize);
+    }
+
+    /**
+     * 设置选择器背景
+     * @param color
+     */
+    public void setSelectorWindowBackgroundColor(int color) {
+        mSelectorWindowBackgroundPaint.setColor(color);
+    }
+
+    /**
+     * 设置蜡烛宽度
+     *
+     * @param candleWidth
+     */
+    public void setCandleWidth(float candleWidth) {
+        mCandleDraw.setCandleWidth(candleWidth);
+    }
+
+    /**
+     * 设置蜡烛线宽度
+     *
+     * @param candleLineWidth
+     */
+    public void setCandleLineWidth(float candleLineWidth) {
+        mCandleDraw.setCandleLineWidth(candleLineWidth);
+    }
+
+    /**
+     * 蜡烛是否空心
+     */
+    public void setCandleSolid(boolean candleSolid) {
+        mCandleDraw.setCandleSolid(candleSolid);
+    }
+
+    public void setRSI1Color(int color) {
+        mRSIDraw.setRSI1Color(color);
+    }
+
+    public void setRSI2Color(int color) {
+        mRSIDraw.setRSI2Color(color);
+    }
+
+    public void setRSI3Color(int color) {
+        mRSIDraw.setRSI3Color(color);
+    }
+
+    /**
+     * 设置DIF颜色
+     */
+    public void setDIFColor(int color) {
+        mMACDDraw.setDIFColor(color);
+    }
+
+    /**
+     * 设置DEA颜色
+     */
+    public void setDEAColor(int color) {
+        mMACDDraw.setDEAColor(color);
+    }
+
+    /**
+     * 设置MACD颜色
+     */
+    public void setMACDColor(int color) {
+        mMACDDraw.setMACDColor(color);
+    }
+
+    /**
+     * 设置MACD的宽度
+     *
+     * @param MACDWidth
+     */
+    public void setMACDWidth(float MACDWidth) {
+        mMACDDraw.setMACDWidth(MACDWidth);
+    }
+
+    /**
+     * 设置up颜色
+     */
+    public void setUpColor(int color) {
+        mBOLLDraw.setUpColor(color);
+    }
+
+    /**
+     * 设置mb颜色
+     *
+     * @param color
+     */
+    public void setMbColor(int color) {
+        mBOLLDraw.setMbColor(color);
+    }
+
+    /**
+     * 设置dn颜色
+     */
+    public void setDnColor(int color) {
+        mBOLLDraw.setDnColor(color);
+    }
+
+    /**
+     * 设置K颜色
+     */
+    public void setKColor(int color) {
+        mKDJDraw.setKColor(color);
+    }
+
+    /**
+     * 设置D颜色
+     */
+    public void setDColor(int color) {
+        mKDJDraw.setDColor(color);
+    }
+
+    /**
+     * 设置J颜色
+     */
+    public void setJColor(int color) {
+        mKDJDraw.setJColor(color);
+    }
+
+    /**
+     * 设置ma5颜色
+     *
+     * @param color
+     */
+    public void setMa5Color(int color) {
+        mCandleDraw.setMa5Color(color);
+        mVolumeDraw.setMa5Color(color);
+    }
+
+    /**
+     * 设置ma10颜色
+     *
+     * @param color
+     */
+    public void setMa10Color(int color) {
+        mCandleDraw.setMa10Color(color);
+        mVolumeDraw.setMa10Color(color);
+    }
+
+    /**
+     * 设置ma20颜色
+     *
+     * @param color
+     */
+    public void setMa20Color(int color) {
+        mCandleDraw.setMa20Color(color);
+    }
+
 }

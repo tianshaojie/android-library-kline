@@ -34,7 +34,7 @@ public class VolumeDrawV2 extends BaseChartDraw {
 
     @Override
     public void drawChart(@NonNull Canvas canvas, @Nullable KLine prevPoint, @NonNull KLine currPoint, float prevX, float currX) {
-        drawVol(canvas, currPoint.vol, prevPoint.vol, currX);
+        drawVol(canvas, currPoint.vol, currX);
         if (prevPoint.vol.ma5Volume != 0f) {
             drawLine(canvas, ma5Paint, prevX, prevPoint.vol.ma5Volume, currX, currPoint.vol.ma5Volume);;
         }
@@ -43,20 +43,22 @@ public class VolumeDrawV2 extends BaseChartDraw {
         }
     }
 
-    private void drawVol(Canvas canvas, Volume curPoint, Volume prevPoint, float curX) {
-        float r = mChartWidth / 2;
+    private void drawVol(Canvas canvas, Volume curPoint, float currX) {
         float top = getY(curPoint.volume);
         int bottom = mRect.bottom;
+        float r = mChartWidth / 2;
         if (curPoint.closePrice >= curPoint.openPrice) {//涨
-            canvas.drawRect(curX - r, top, curX + r, bottom, mRedPaint);
+            canvas.drawRect(currX - r, top, currX + r, bottom, mRedPaint);
+//            canvas.drawRect(currX, top, currX + mChartWidth, bottom, mRedPaint);
         } else {
-            canvas.drawRect(curX - r, top, curX + r, bottom, mGreenPaint);
+            canvas.drawRect(currX - r, top, currX + r, bottom, mGreenPaint);
+//            canvas.drawRect(currX, top, currX + mChartWidth, bottom, mGreenPaint);
         }
 
     }
 
-    public void drawText(@NonNull Canvas canvas, @NonNull IChartData chartData, float x, float y) {
-        Volume point = (Volume) chartData;
+    public void drawText(@NonNull Canvas canvas, @NonNull KLine chartData, float x, float y) {
+        Volume point = chartData.vol;
         String text = "VOL:" + KLine.getValueFormatter(ChartEnum.VOL.name()).format(point.volume) + "  ";
         canvas.drawText(text, x, y, mTextPaint);
         x += mTextPaint.measureText(text);

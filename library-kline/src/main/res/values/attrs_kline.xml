@@ -2,11 +2,60 @@
 <resources>
     <declare-styleable name="KLineView">
 
-        <attr name="kv_is_show_first_child_rect" format="boolean"/>
-        <attr name="kv_is_show_second_child_rect" format="boolean"/>
-        <attr name="kv_first_child_rect_height" format="dimension"/>
-        <attr name="kv_second_child_rect_height" format="dimension"/>
+        <attr name="kline_is_show_vol_rect" format="boolean"/>
+        <attr name="kline_is_show_child_rect" format="boolean"/>
+        <attr name="kline_vol_rect_height" format="dimension"/>
+        <attr name="kline_child_rect_height" format="dimension"/>
 
+        <!--公共的-->
+        <!-- KLine字体大小颜色-边框字体 -->
+        <attr name="kline_text_size" format="dimension"/>
+        <attr name="kline_text_color" format="color"/>
+
+        <attr name="kline_max_min_text_size" format="dimension"/>
+        <attr name="kline_max_min_text_color" format="color"/>
+
+        <attr name="kline_selected_x_line_width" format="dimension"/>
+        <attr name="kline_selected_y_line_width" format="dimension"/>
+        <attr name="kline_selected_x_line_color" format="color"/>
+        <attr name="kline_selected_y_line_color" format="color"/>
+
+        <attr name="kline_selector_window_bg_color" format="color"/>
+        <attr name="kline_selected_window_text_size" format="dimension"/>
+
+        <attr name="kline_line_width" format="dimension"/>
+        <attr name="kline_background_color" format="color"/>
+        <attr name="kline_selected_point_text_bg_color" format="color"/>
+        <attr name="kline_selected_line_color" format="color"/>
+        <attr name="kline_selected_line_width" format="dimension"/>
+        <attr name="kline_grid_line_width" format="dimension"/>
+        <attr name="kline_grid_line_color" format="color"/>
+        <attr name="kline_point_width" format="dimension"/>
+
+        <!--macd-->
+        <attr name="kline_macd_width" format="dimension"/>
+        <attr name="kline_dif_color" format="color"/>
+        <attr name="kline_dea_color" format="color"/>
+        <attr name="kline_macd_color" format="color"/>
+        <!--kdj-->
+        <attr name="kline_k_color" format="color"/>
+        <attr name="kline_d_color" format="color"/>
+        <attr name="kline_j_color" format="color"/>
+        <!--rsi-->
+        <attr name="kline_rsi1_color" format="color"/>
+        <attr name="kline_rsi2_color" format="color"/>
+        <attr name="kline_ris3_color" format="color"/>
+        <!--boll-->
+        <attr name="kline_up_color" format="color"/>
+        <attr name="kline_mb_color" format="color"/>
+        <attr name="kline_dn_color" format="color"/>
+        <!--main-->
+        <attr name="kline_ma5_color" format="color"/>
+        <attr name="kline_ma10_color" format="color"/>
+        <attr name="kline_ma20_color" format="color"/>
+        <attr name="kline_candle_width" format="dimension"/>
+        <attr name="kline_candle_line_width" format="dimension"/>
+        <attr name="kline_candle_solid" format="boolean"/>
 
     </declare-styleable>
 </resources>
