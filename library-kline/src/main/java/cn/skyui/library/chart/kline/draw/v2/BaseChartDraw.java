@@ -23,12 +23,10 @@ public abstract class BaseChartDraw {
     protected int mStartIndex;
     protected int mStopIndex;
 
-    protected float mCandleWidth;
-    protected float mCandlePadding;
-
     protected Rect mRect;
     protected int mRectWidth;
     protected int mTopPadding;
+    protected float mChartItemWidth; // 每根K线总宽度，包含间距
     protected Paint mGridPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 
     protected float mMaxValue = Float.MIN_VALUE;
@@ -44,8 +42,7 @@ public abstract class BaseChartDraw {
         mGridPaint.setColor(Color.GRAY);
         mGridPaint.setStyle(Paint.Style.STROKE);
         mGridPaint.setStrokeWidth(context.getResources().getDimension(R.dimen.chart_line_width));
-        mCandleWidth = (int) context.getResources().getDimension(R.dimen.chart_candle_width);
-        mCandlePadding = (int) context.getResources().getDimension(R.dimen.chart_candle_padding);
+        mChartItemWidth = (int) context.getResources().getDimension(R.dimen.chart_item_width);
         mTopPadding = (int) context.getResources().getDimension(R.dimen.chart_top_padding);
     }
 
@@ -61,7 +58,7 @@ public abstract class BaseChartDraw {
         mMaxValue = Float.MIN_VALUE;
         mMinValue = Float.MAX_VALUE;
         for (int i = mStartIndex; i <= mStopIndex; i++) {
-            KLine point = (KLine) dataList.get(i);
+            KLine point = dataList.get(i);
             mMaxValue = Math.max(mMaxValue, point.getChildData(mChartType.name()).getMaxValue());
             mMinValue = Math.min(mMinValue, point.getChildData(mChartType.name()).getMinValue());
         }
@@ -82,9 +79,9 @@ public abstract class BaseChartDraw {
         for (int i = mStartIndex; i <= mStopIndex; i++) {
             KLine currentPoint = mDateList.get(i);
             int rightSidePointCount = mDateList.size() - i;
-            float currentPointX = mRectWidth + scrollX - getX(rightSidePointCount) + mCandlePadding / 2;
+            float currentPointX = mRectWidth + scrollX - getX(rightSidePointCount);
             KLine prevPoint = i == 0 ? currentPoint : mDateList.get(i - 1);
-            float prevX = i == 0 ? currentPointX : mRectWidth + scrollX - getX(rightSidePointCount + 1) + mCandlePadding / 2;
+            float prevX = i == 0 ? currentPointX : mRectWidth + scrollX - getX(rightSidePointCount + 1);
             drawChart(canvas, prevPoint, currentPoint, prevX, currentPointX);
         }
     }
@@ -110,7 +107,7 @@ public abstract class BaseChartDraw {
      * @return X坐标
      */
     protected float getX(int position) {
-        return position * (mCandleWidth + mCandlePadding);
+        return position * mChartItemWidth;
     }
 
     /**
@@ -139,19 +136,11 @@ public abstract class BaseChartDraw {
         this.mScaleX = mScaleX;
     }
 
-    public float getCandleWidth() {
-        return mCandleWidth;
+    public float getChartItemWidth() {
+        return mChartItemWidth;
     }
 
-    public void setCandleWidth(float chartWidth) {
-        this.mCandleWidth = chartWidth;
-    }
-
-    public float getChartPadding() {
-        return mCandlePadding;
-    }
-
-    public void setChartPadding(float chartPadding) {
-        this.mCandlePadding = chartPadding;
+    public void setChartItemWidth(float chartItemWidth) {
+        this.mChartItemWidth = chartItemWidth;
     }
 }

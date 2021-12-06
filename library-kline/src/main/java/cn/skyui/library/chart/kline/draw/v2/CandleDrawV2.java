@@ -23,6 +23,7 @@ public class CandleDrawV2 extends BaseChartDraw {
 
     private static final int GRID_ROWS = 4;
 
+    protected float mCandleWidth;
     private float mCandleLineWidth = 0;
     private boolean mCandleSolid = true; // 实心蜡烛图
 
@@ -42,6 +43,7 @@ public class CandleDrawV2 extends BaseChartDraw {
         mContext = context;
         mRedPaint.setColor(ContextCompat.getColor(context, R.color.chart_red));
         mGreenPaint.setColor(ContextCompat.getColor(context, R.color.chart_green));
+        mCandleWidth = (int) context.getResources().getDimension(R.dimen.chart_candle_width);
         mCandleLineWidth = (int) context.getResources().getDimension(R.dimen.chart_candle_line_width);
     }
 
@@ -133,7 +135,8 @@ public class CandleDrawV2 extends BaseChartDraw {
         close = getY(close);
         float r = mCandleWidth / 2;
         float lineR = mCandleLineWidth / 2;
-
+        // 加上间距的一半(左右间距各占一半)是X坐标起始的位置
+        x = x + (mChartItemWidth - mCandleWidth) / 2;
         if (open > close) {
             if (mCandleSolid) {
                 //实心
@@ -235,4 +238,11 @@ public class CandleDrawV2 extends BaseChartDraw {
         mCandleSolid = candleSolid;
     }
 
+    public float getCandleWidth() {
+        return mCandleWidth;
+    }
+
+    public void setCandleWidth(float chartWidth) {
+        this.mCandleWidth = chartWidth;
+    }
 }

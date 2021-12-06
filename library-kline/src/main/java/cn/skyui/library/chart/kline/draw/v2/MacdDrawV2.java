@@ -20,6 +20,7 @@ import cn.skyui.library.chart.kline.data.model.Macd;
 
 public class MacdDrawV2 extends BaseChartDraw {
 
+    protected float mCandleWidth;
     private Paint mTextPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private Paint mRedPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private Paint mGreenPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -36,6 +37,7 @@ public class MacdDrawV2 extends BaseChartDraw {
         mRedPaint.setColor(ContextCompat.getColor(context, R.color.chart_red));
         mGreenPaint.setColor(ContextCompat.getColor(context, R.color.chart_green));
         formatter = KLine.getValueFormatter(ChartEnum.MACD.name());
+        mCandleWidth = (int) context.getResources().getDimension(R.dimen.chart_candle_width);
     }
 
     @Override
@@ -54,12 +56,13 @@ public class MacdDrawV2 extends BaseChartDraw {
      */
     private void drawMACD(Canvas canvas, float x, float macd) {
         float macdy = getY(macd);
-        float r = mCandleWidth / 2;
+        // 加上间距的一半(左右间距各占一半)是X坐标起始的位置
+        x = x + (mChartItemWidth - mCandleWidth) / 2;
         float zeroy = getY(0);
         if (macd > 0) {
-            canvas.drawRect(x - r, macdy, x + r, zeroy, mRedPaint);
+            canvas.drawRect(x, macdy, x + mCandleWidth, zeroy, mRedPaint);
         } else {
-            canvas.drawRect(x - r, zeroy, x + r, macdy, mGreenPaint);
+            canvas.drawRect(x, zeroy, x + mCandleWidth, macdy, mGreenPaint);
         }
     }
 
@@ -105,7 +108,7 @@ public class MacdDrawV2 extends BaseChartDraw {
      * @param MACDWidth
      */
     public void setMACDWidth(float MACDWidth) {
-        mCandleWidth = MACDWidth;
+//        mCandleWidth = MACDWidth;
     }
 
     /**

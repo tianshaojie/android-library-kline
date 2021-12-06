@@ -19,6 +19,7 @@ import cn.skyui.library.chart.kline.data.model.Volume;
 
 public class VolumeDrawV2 extends BaseChartDraw {
 
+    protected float mCandleWidth;
     private Paint mTextPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private Paint mRedPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private Paint mGreenPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -29,6 +30,7 @@ public class VolumeDrawV2 extends BaseChartDraw {
         super(context, ChartEnum.VOL);
         mRedPaint.setColor(ContextCompat.getColor(context, R.color.chart_red));
         mGreenPaint.setColor(ContextCompat.getColor(context, R.color.chart_green));
+        mCandleWidth = (int) context.getResources().getDimension(R.dimen.chart_candle_width);
     }
 
     @Override
@@ -45,11 +47,11 @@ public class VolumeDrawV2 extends BaseChartDraw {
     private void drawVol(Canvas canvas, Volume curPoint, float currX) {
         float top = getY(curPoint.volume);
         int bottom = mRect.bottom;
+        // 加上间距的一半(左右间距各占一半)是X坐标起始的位置
+        currX = currX + (mChartItemWidth - mCandleWidth) / 2;
         if (curPoint.closePrice >= curPoint.openPrice) {//涨
-//            canvas.drawRect(currX - r, top, currX + r, bottom, mRedPaint);
             canvas.drawRect(currX, top, currX + mCandleWidth, bottom, mRedPaint);
         } else {
-//            canvas.drawRect(currX - r, top, currX + r, bottom, mGreenPaint);
             canvas.drawRect(currX, top, currX + mCandleWidth, bottom, mGreenPaint);
         }
 
@@ -110,5 +112,4 @@ public class VolumeDrawV2 extends BaseChartDraw {
         this.ma10Paint.setTextSize(textSize);
         this.mTextPaint.setTextSize(textSize);
     }
-
 }
