@@ -2,7 +2,6 @@ package cn.skyui.library.chart.kline.draw.v2;
 
 import android.content.Context;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Paint;
 
 import androidx.annotation.NonNull;
@@ -12,7 +11,6 @@ import androidx.core.content.ContextCompat;
 import java.util.List;
 
 import cn.skyui.library.chart.kline.R;
-import cn.skyui.library.chart.kline.base.IChartData;
 import cn.skyui.library.chart.kline.data.ChartEnum;
 import cn.skyui.library.chart.kline.data.model.Candle;
 import cn.skyui.library.chart.kline.data.model.KLine;
@@ -133,30 +131,33 @@ public class CandleDrawV2 extends BaseChartDraw {
         low = getY(low);
         open = getY(open);
         close = getY(close);
-        float r = mChartWidth / 2;
+        float r = mCandleWidth / 2;
         float lineR = mCandleLineWidth / 2;
+
         if (open > close) {
-            //实心
             if (mCandleSolid) {
-                canvas.drawRect(x - r, close, x + r, open, mRedPaint);
-                canvas.drawRect(x - lineR, high, x + lineR, low, mRedPaint);
+                //实心
+                canvas.drawRect(x, close, x + mCandleWidth, open, mRedPaint);
+                canvas.drawRect(x + r - lineR, high, x + r + lineR, low, mRedPaint);
             } else {
                 mRedPaint.setStrokeWidth(mCandleLineWidth);
-                canvas.drawLine(x, high, x, close, mRedPaint);
-                canvas.drawLine(x, open, x, low, mRedPaint);
-                canvas.drawLine(x - r + lineR, open, x - r + lineR, close, mRedPaint);
-                canvas.drawLine(x + r - lineR, open, x + r - lineR, close, mRedPaint);
+                // 中线上下竖线
+                canvas.drawLine(x + r, high, x + r, close, mRedPaint);
+                canvas.drawLine(x + r, open, x + r, low, mRedPaint);
+                // 矩形左右竖线
+                canvas.drawLine(x, open, x, close, mRedPaint);
+                canvas.drawLine(x + mCandleWidth, open, x + mCandleWidth, close, mRedPaint);
                 mRedPaint.setStrokeWidth(mCandleLineWidth * getScaleX());
-                canvas.drawLine(x - r, open, x + r, open, mRedPaint);
-                canvas.drawLine(x - r, close, x + r, close, mRedPaint);
+                // 矩形上下横线
+                canvas.drawLine(x, open, x + mCandleWidth, open, mRedPaint);
+                canvas.drawLine(x, close, x + mCandleWidth, close, mRedPaint);
             }
-
         } else if (open < close) {
-            canvas.drawRect(x - r, open, x + r, close, mGreenPaint);
-            canvas.drawRect(x - lineR, high, x + lineR, low, mGreenPaint);
+            canvas.drawRect(x, open, x + mCandleWidth, close, mGreenPaint);
+            canvas.drawRect(x + r - lineR, high, x + r + lineR, low, mGreenPaint);
         } else {
-            canvas.drawRect(x - r, open, x + r, close + 1, mRedPaint);
-            canvas.drawRect(x - lineR, high, x + lineR, low, mRedPaint);
+            canvas.drawRect(x, open, x + mCandleWidth, close + 1, mRedPaint);
+            canvas.drawRect(x + r - lineR, high, x + r + lineR, low, mRedPaint);
         }
     }
 
@@ -170,15 +171,6 @@ public class CandleDrawV2 extends BaseChartDraw {
         x += ma10Paint.measureText(text);
         text = "MA20:" + KLine.getValueFormatter(ChartEnum.CANDLE.name()).format(point.ma20Price) + "  ";
         canvas.drawText(text, x, y, ma20Paint);
-    }
-
-    /**
-     * 设置蜡烛宽度
-     *
-     * @param candleWidth
-     */
-    public void setCandleWidth(float candleWidth) {
-        mChartWidth = candleWidth;
     }
 
     /**
@@ -235,27 +227,12 @@ public class CandleDrawV2 extends BaseChartDraw {
         ma5Paint.setTextSize(textSize);
     }
 
-    public float getCandleWidth() {
-        return mChartWidth + mChartPadding;
-    }
-
-    public float getCandlePadding() {
-        return mChartPadding;
-    }
 
     /**
      * 蜡烛是否实心
      */
     public void setCandleSolid(boolean candleSolid) {
         mCandleSolid = candleSolid;
-    }
-
-    public float getScaleX() {
-        return mScaleX;
-    }
-
-    public void setScaleX(float mScaleX) {
-        this.mScaleX = mScaleX;
     }
 
 }

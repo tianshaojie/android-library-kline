@@ -139,10 +139,8 @@ public class KLineViewV2 extends ScrollAndScaleView {
             // 坐标格线条颜色宽度
             setGridLineWidth(array.getDimension(R.styleable.KLineView_kline_grid_line_width, getDimension(R.dimen.chart_grid_line_width)));
             setGridLineColor(array.getColor(R.styleable.KLineView_kline_grid_line_color, getColor(R.color.chart_grid_line)));
-            // 各类曲线宽度
+            // 各类均线宽度
             setLineWidth(array.getDimension(R.styleable.KLineView_kline_line_width, getDimension(R.dimen.chart_line_width)));
-            // 单个日期点的宽度
-            setPointWidth(array.getDimension(R.styleable.KLineView_kline_point_width, getDimension(R.dimen.chart_point_width)));
             // 默认字体大小颜色
             setTextSize(array.getDimension(R.styleable.KLineView_kline_text_size, getDimension(R.dimen.chart_text_size)));
             setTextColor(array.getColor(R.styleable.KLineView_kline_text_color, getColor(R.color.chart_text)));
@@ -164,7 +162,11 @@ public class KLineViewV2 extends ScrollAndScaleView {
             setMa5Color(array.getColor(R.styleable.KLineView_kline_dif_color, getColor(R.color.chart_ma5)));
             setMa10Color(array.getColor(R.styleable.KLineView_kline_dea_color, getColor(R.color.chart_ma10)));
             setMa20Color(array.getColor(R.styleable.KLineView_kline_macd_color, getColor(R.color.chart_ma20)));
+            // 蜡烛图宽度，不包括左右padding
             setCandleWidth(array.getDimension(R.styleable.KLineView_kline_candle_width, getDimension(R.dimen.chart_candle_width)));
+            // 蜡烛图之间的间距
+            setCandlePadding(array.getDimension(R.styleable.KLineView_kline_candle_padding_width, getDimension(R.dimen.chart_candle_padding)));
+            // 蜡烛图上下线的宽度
             setCandleLineWidth(array.getDimension(R.styleable.KLineView_kline_candle_line_width, getDimension(R.dimen.chart_candle_line_width)));
             setCandleSolid(array.getBoolean(R.styleable.KLineView_kline_candle_solid, true));
 
@@ -307,7 +309,7 @@ public class KLineViewV2 extends ScrollAndScaleView {
     }
 
     public void calculateValue(int scrollX) {
-        float singleChartWidth = mCandleDraw.getCandleWidth();
+        float singleChartWidth = mCandleDraw.getCandleWidth() + mCandleDraw.getChartPadding();
         // 屏幕内+屏幕外右侧画布区域的蜡烛图数量
         float candleCount = (mWidth + scrollX) / singleChartWidth;
         // 屏幕内的蜡烛图数量
@@ -386,11 +388,6 @@ public class KLineViewV2 extends ScrollAndScaleView {
      */
     public void addChildDraw(String name, BaseChartDraw childDraw) {
         mChildDraws.put(name, childDraw);
-    }
-
-
-    public float getX(int position) {
-        return position * mCandleDraw.getCandleWidth();
     }
 
     @Override
@@ -500,8 +497,8 @@ public class KLineViewV2 extends ScrollAndScaleView {
 
     @Override
     public int getMaxScrollX() {
-        float mDataLen = (mItemCount - 1) * mCandleDraw.getCandleWidth();
-        return (int) (mDataLen - mWidth / mScaleX + mCandleDraw.getCandleWidth() / 2);
+        float mDataLen = (mItemCount - 1) * (mCandleDraw.getCandleWidth() + mCandleDraw.getChartPadding());
+        return (int) (mDataLen - mWidth / mScaleX + (mCandleDraw.getCandleWidth() + mCandleDraw.getChartPadding()) / 2);
     }
     /**
      * 设置刷新监听
@@ -578,14 +575,6 @@ public class KLineViewV2 extends ScrollAndScaleView {
         mGridPaint.setColor(color);
     }
 
-    private float mPointWidth = 6;
-    /**
-     * 设置每个点的宽度
-     */
-    public void setPointWidth(float pointWidth) {
-        mPointWidth = pointWidth;
-    }
-
     /**
      * 设置最大值/最小值文字颜色
      */
@@ -660,12 +649,21 @@ public class KLineViewV2 extends ScrollAndScaleView {
     }
 
     /**
-     * 设置蜡烛宽度
+     * 设置蜡烛图宽度
      *
      * @param candleWidth
      */
     public void setCandleWidth(float candleWidth) {
         mCandleDraw.setCandleWidth(candleWidth);
+    }
+
+    /**
+     * 设置蜡烛图间距
+     *
+     * @param candlePadding
+     */
+    public void setCandlePadding(float candlePadding) {
+        mCandleDraw.setChartPadding(candlePadding);
     }
 
     /**

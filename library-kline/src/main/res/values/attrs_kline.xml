@@ -54,6 +54,7 @@
         <attr name="kline_ma10_color" format="color"/>
         <attr name="kline_ma20_color" format="color"/>
         <attr name="kline_candle_width" format="dimension"/>
+        <attr name="kline_candle_padding_width" format="dimension"/>
         <attr name="kline_candle_line_width" format="dimension"/>
         <attr name="kline_candle_solid" format="boolean"/>
 

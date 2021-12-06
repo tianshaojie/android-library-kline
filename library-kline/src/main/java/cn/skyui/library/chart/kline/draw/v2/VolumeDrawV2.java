@@ -9,7 +9,6 @@ import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 
 import cn.skyui.library.chart.kline.R;
-import cn.skyui.library.chart.kline.base.IChartData;
 import cn.skyui.library.chart.kline.data.ChartEnum;
 import cn.skyui.library.chart.kline.data.model.KLine;
 import cn.skyui.library.chart.kline.data.model.Volume;
@@ -46,13 +45,12 @@ public class VolumeDrawV2 extends BaseChartDraw {
     private void drawVol(Canvas canvas, Volume curPoint, float currX) {
         float top = getY(curPoint.volume);
         int bottom = mRect.bottom;
-        float r = mChartWidth / 2;
         if (curPoint.closePrice >= curPoint.openPrice) {//涨
-            canvas.drawRect(currX - r, top, currX + r, bottom, mRedPaint);
-//            canvas.drawRect(currX, top, currX + mChartWidth, bottom, mRedPaint);
+//            canvas.drawRect(currX - r, top, currX + r, bottom, mRedPaint);
+            canvas.drawRect(currX, top, currX + mCandleWidth, bottom, mRedPaint);
         } else {
-            canvas.drawRect(currX - r, top, currX + r, bottom, mGreenPaint);
-//            canvas.drawRect(currX, top, currX + mChartWidth, bottom, mGreenPaint);
+//            canvas.drawRect(currX - r, top, currX + r, bottom, mGreenPaint);
+            canvas.drawRect(currX, top, currX + mCandleWidth, bottom, mGreenPaint);
         }
 
     }

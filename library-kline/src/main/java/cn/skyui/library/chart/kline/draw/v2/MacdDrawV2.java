@@ -9,7 +9,6 @@ import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 
 import cn.skyui.library.chart.kline.R;
-import cn.skyui.library.chart.kline.base.IChartData;
 import cn.skyui.library.chart.kline.base.IValueFormatter;
 import cn.skyui.library.chart.kline.data.ChartEnum;
 import cn.skyui.library.chart.kline.data.model.KLine;
@@ -55,7 +54,7 @@ public class MacdDrawV2 extends BaseChartDraw {
      */
     private void drawMACD(Canvas canvas, float x, float macd) {
         float macdy = getY(macd);
-        float r = mChartWidth / 2;
+        float r = mCandleWidth / 2;
         float zeroy = getY(0);
         if (macd > 0) {
             canvas.drawRect(x - r, macdy, x + r, zeroy, mRedPaint);
@@ -106,7 +105,7 @@ public class MacdDrawV2 extends BaseChartDraw {
      * @param MACDWidth
      */
     public void setMACDWidth(float MACDWidth) {
-        mChartWidth = MACDWidth;
+        mCandleWidth = MACDWidth;
     }
 
     /**
