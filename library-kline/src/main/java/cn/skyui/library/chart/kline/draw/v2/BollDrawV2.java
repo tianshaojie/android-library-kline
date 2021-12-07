@@ -27,10 +27,12 @@ public class BollDrawV2 extends BaseChartDraw {
     }
 
     @Override
-    public void drawChart(@NonNull Canvas canvas, @Nullable KLine prevPoint, @NonNull KLine currPoint, float prevX, float curX) {
-        drawLine(canvas, mUpPaint, prevX, prevPoint.boll.up, curX, currPoint.boll.up);
-        drawLine(canvas, mMbPaint, prevX, prevPoint.boll.mb, curX, currPoint.boll.mb);
-        drawLine(canvas, mDnPaint, prevX, prevPoint.boll.dn, curX, currPoint.boll.dn);
+    public void drawChartItem(@NonNull Canvas canvas, @Nullable KLine prevPoint, @NonNull KLine currPoint, float prevX, float currX) {
+        float r = mChartItemWidth / 2;
+        currX+=r; prevX+=r;
+        drawLine(canvas, mUpPaint, prevX, prevPoint.boll.up, currX, currPoint.boll.up);
+        drawLine(canvas, mMbPaint, prevX, prevPoint.boll.mb, currX, currPoint.boll.mb);
+        drawLine(canvas, mDnPaint, prevX, prevPoint.boll.dn, currX, currPoint.boll.dn);
     }
 
     public void drawText(@NonNull Canvas canvas, @NonNull IChartData chartData, float x, float y) {

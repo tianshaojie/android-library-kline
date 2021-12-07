@@ -41,8 +41,10 @@ public class MacdDrawV2 extends BaseChartDraw {
     }
 
     @Override
-    public void drawChart(@NonNull Canvas canvas, @Nullable KLine prevPoint, @NonNull KLine currPoint, float prevX, float currX) {
-        drawMACD(canvas, currX, prevPoint.macd.macd);
+    public void drawChartItem(@NonNull Canvas canvas, @Nullable KLine prevPoint, @NonNull KLine currPoint, float prevX, float currX) {
+        drawMACD(canvas, currX, currPoint.macd.macd);
+        float r = mChartItemWidth / 2;
+        currX+=r; prevX+=r;
         drawLine(canvas, mDIFPaint, prevX, prevPoint.macd.dea, currX, currPoint.macd.dea);
         drawLine(canvas, mDEAPaint, prevX, prevPoint.macd.dif, currX, currPoint.macd.dif);
     }

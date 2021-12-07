@@ -27,10 +27,12 @@ public class RsiDrawV2 extends BaseChartDraw {
     }
 
     @Override
-    public void drawChart(@NonNull Canvas canvas, @Nullable KLine prevPoint, @NonNull KLine currPoint, float prevX, float curX) {
-        drawLine(canvas, mRSI1Paint, prevX, prevPoint.rsi.rsi1, curX, currPoint.rsi.rsi1);
-        drawLine(canvas, mRSI2Paint, prevX, prevPoint.rsi.rsi2, curX, currPoint.rsi.rsi2);
-        drawLine(canvas, mRSI3Paint, prevX, prevPoint.rsi.rsi3, curX, currPoint.rsi.rsi3);
+    public void drawChartItem(@NonNull Canvas canvas, @Nullable KLine prevPoint, @NonNull KLine currPoint, float prevX, float currX) {
+        float r = mChartItemWidth / 2;
+        currX+=r; prevX+=r;
+        drawLine(canvas, mRSI1Paint, prevX, prevPoint.rsi.rsi1, currX, currPoint.rsi.rsi1);
+        drawLine(canvas, mRSI2Paint, prevX, prevPoint.rsi.rsi2, currX, currPoint.rsi.rsi2);
+        drawLine(canvas, mRSI3Paint, prevX, prevPoint.rsi.rsi3, currX, currPoint.rsi.rsi3);
     }
     
 

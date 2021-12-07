@@ -27,10 +27,12 @@ public class KdjDrawV2 extends BaseChartDraw {
     }
 
     @Override
-    public void drawChart(@NonNull Canvas canvas, @Nullable KLine prevPoint, @NonNull KLine currPoint, float prevX, float curX) {
-        drawLine(canvas, mKPaint, prevX, prevPoint.kdj.k, curX, currPoint.kdj.k);
-        drawLine(canvas, mDPaint, prevX, prevPoint.kdj.d, curX, currPoint.kdj.d);
-        drawLine(canvas, mJPaint, prevX, prevPoint.kdj.j, curX, currPoint.kdj.j);
+    public void drawChartItem(@NonNull Canvas canvas, @Nullable KLine prevPoint, @NonNull KLine currPoint, float prevX, float currX) {
+        float r = mChartItemWidth / 2;
+        currX+=r; prevX+=r;
+        drawLine(canvas, mKPaint, prevX, prevPoint.kdj.k, currX, currPoint.kdj.k);
+        drawLine(canvas, mDPaint, prevX, prevPoint.kdj.d, currX, currPoint.kdj.d);
+        drawLine(canvas, mJPaint, prevX, prevPoint.kdj.j, currX, currPoint.kdj.j);
     }
 
     public void drawText(@NonNull Canvas canvas, @NonNull IChartData chartData, float x, float y) {

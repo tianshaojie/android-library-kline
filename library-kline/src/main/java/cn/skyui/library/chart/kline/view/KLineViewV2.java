@@ -79,8 +79,6 @@ public class KLineViewV2 extends ScrollAndScaleView {
     private float mChildRectHeight;
     private Rect mChildRect;
 
-    private ValueAnimator mAnimator;
-    private long mAnimationDuration = 500;
     private ProgressBar mProgressBar;
     private boolean isRefreshing = false;
     private boolean isLoadMoreEnd = false;
@@ -166,9 +164,7 @@ public class KLineViewV2 extends ScrollAndScaleView {
             setMa10Color(array.getColor(R.styleable.KLineView_kline_dea_color, getColor(R.color.chart_ma10)));
             setMa20Color(array.getColor(R.styleable.KLineView_kline_macd_color, getColor(R.color.chart_ma20)));
             // 蜡烛图宽度，不包括左右padding
-//            setCandleWidth(array.getDimension(R.styleable.KLineView_kline_candle_width, getDimension(R.dimen.chart_candle_width)));
-            // 蜡烛图之间的间距
-//            setCandlePadding(array.getDimension(R.styleable.KLineView_kline_candle_padding_width, getDimension(R.dimen.chart_candle_padding)));
+            setCandleWidth(array.getDimension(R.styleable.KLineView_kline_candle_width, getDimension(R.dimen.chart_candle_width)));
             // 蜡烛图上下线的宽度
             setCandleLineWidth(array.getDimension(R.styleable.KLineView_kline_candle_line_width, getDimension(R.dimen.chart_candle_line_width)));
             setCandleSolid(array.getBoolean(R.styleable.KLineView_kline_candle_solid, true));
@@ -217,10 +213,6 @@ public class KLineViewV2 extends ScrollAndScaleView {
         setWillNotDraw(false);
         mDetector = new GestureDetectorCompat(getContext(), this);
         mScaleDetector = new ScaleGestureDetector(getContext(), this);
-
-        mAnimator = ValueAnimator.ofFloat(0f, 1f);
-        mAnimator.setDuration(mAnimationDuration);
-        mAnimator.addUpdateListener(animation -> invalidate());
 
         int strokeWidth = 2;
         mGridPaint.setStrokeWidth(strokeWidth);
@@ -436,15 +428,6 @@ public class KLineViewV2 extends ScrollAndScaleView {
     @Override
     public void onLeftSide() {
         showLoading();
-    }
-
-    /**
-     * 开始动画
-     */
-    public void startAnimation() {
-        if (mAnimator != null) {
-            mAnimator.start();
-        }
     }
 
     public void showLoading() {

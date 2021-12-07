@@ -82,11 +82,11 @@ public abstract class BaseChartDraw {
             float currentPointX = mRectWidth + scrollX - getX(rightSidePointCount);
             KLine prevPoint = i == 0 ? currentPoint : mDateList.get(i - 1);
             float prevX = i == 0 ? currentPointX : mRectWidth + scrollX - getX(rightSidePointCount + 1);
-            drawChart(canvas, prevPoint, currentPoint, prevX, currentPointX);
+            drawChartItem(canvas, prevPoint, currentPoint, prevX, currentPointX);
         }
     }
 
-    protected abstract void drawChart(@NonNull Canvas canvas, @Nullable KLine prevPoint, @NonNull KLine currPoint, float prevX, float curX);
+    protected abstract void drawChartItem(@NonNull Canvas canvas, @Nullable KLine prevPoint, @NonNull KLine currPoint, float prevX, float curX);
 
     /**
      * 在子区域画线

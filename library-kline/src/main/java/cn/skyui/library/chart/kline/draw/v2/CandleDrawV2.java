@@ -102,8 +102,10 @@ public class CandleDrawV2 extends BaseChartDraw {
     }
 
     @Override
-    public void drawChart(@NonNull Canvas canvas, @Nullable KLine prevPoint, @NonNull KLine currPoint, float prevX, float currX) {
+    public void drawChartItem(@NonNull Canvas canvas, @Nullable KLine prevPoint, @NonNull KLine currPoint, float prevX, float currX) {
         drawCandleChart(canvas, currX, currPoint.high, currPoint.low, currPoint.open, currPoint.close);
+        float r = mChartItemWidth / 2;
+        currX+=r; prevX+=r;
         //画ma5
         if (prevPoint != null && prevPoint.ma5Price != 0) {
             drawLine(canvas, ma5Paint, prevX, prevPoint.ma5Price, currX, currPoint.ma5Price);

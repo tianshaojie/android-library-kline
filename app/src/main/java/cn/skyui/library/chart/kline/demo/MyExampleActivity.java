@@ -50,10 +50,6 @@ public class MyExampleActivity extends AppCompatActivity {
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    //第一次加载时开始动画
-                    if (mAdapter.getCount() == 0) {
-                        klineViewV2.startAnimation();
-                    }
                     mAdapter.addFooterData(data);
                     if (data.size() > 0) { //加载完成，还有更多数据
                         klineViewV2.refreshComplete();
