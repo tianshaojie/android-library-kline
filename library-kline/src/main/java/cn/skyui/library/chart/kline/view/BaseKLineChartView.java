@@ -11,6 +11,7 @@ import android.graphics.Rect;
 import android.graphics.RectF;
 import androidx.core.view.GestureDetectorCompat;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 
@@ -258,6 +259,7 @@ public abstract class BaseKLineChartView extends ScrollAndScaleView {
         //保存之前的平移，缩放
         canvas.save();
         canvas.translate(mTranslateX * mScaleX, 0); // mTranslateX * mScaleX = -1131
+        Log.i("KLineView", "mTranslateX * mScaleX=" + mTranslateX * mScaleX);
         canvas.scale(mScaleX, 1); // mScaleX = 1
         // 51, 100
         for (int i = mStartIndex; i <= mStopIndex; i++) {
@@ -651,6 +653,7 @@ public abstract class BaseKLineChartView extends ScrollAndScaleView {
     protected void onScaleChanged(float scale, float oldScale) {
         checkAndFixScrollX();
         setTranslateXFromScrollX(mScrollX);
+        Log.i("KLineView", "mTranslateX=" + mTranslateX);
         super.onScaleChanged(scale, oldScale);
     }
 
@@ -747,6 +750,7 @@ public abstract class BaseKLineChartView extends ScrollAndScaleView {
      * @return
      */
     private float getMinTranslateX() {
+        Log.i("KLineView", "mWidth=" + mWidth + ", mPointWidth=" + mPointWidth);
         return -mDataLen + mWidth / mScaleX - mPointWidth / 2;
     }
 

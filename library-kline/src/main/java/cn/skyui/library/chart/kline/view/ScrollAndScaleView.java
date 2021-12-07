@@ -144,6 +144,7 @@ public abstract class ScrollAndScaleView extends RelativeLayout implements
         }
         float oldScale = mScaleX;
         mScaleX *= detector.getScaleFactor();
+        Log.i("KLineView", "onScale=" + mScaleX);
         if (mScaleX < mScaleXMin) {
             mScaleX = mScaleXMin;
         } else if (mScaleX > mScaleXMax) {
@@ -254,8 +255,10 @@ public abstract class ScrollAndScaleView extends RelativeLayout implements
     protected void checkAndFixScrollX() {
         if (mScrollX < getMinScrollX()) {
             mScrollX = getMinScrollX();
+            Log.i("KLineView", "mScrollX1=" + mScrollX);
             mScroller.forceFinished(true);
         } else if (mScrollX > getMaxScrollX()) {
+            Log.i("KLineView", "mScrollX2=" + mScrollX);
             mScrollX = getMaxScrollX();
             mScroller.forceFinished(true);
         }
