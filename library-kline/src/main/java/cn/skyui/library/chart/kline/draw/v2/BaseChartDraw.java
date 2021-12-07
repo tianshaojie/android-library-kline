@@ -61,31 +61,17 @@ public abstract class BaseChartDraw {
             KLine point = dataList.get(i);
             mMaxValue = Math.max(mMaxValue, point.getChildData(mChartType.name()).getMaxValue());
             mMinValue = Math.min(mMinValue, point.getChildData(mChartType.name()).getMinValue());
+            calculateItem(point, i);
         }
         if (Math.abs(mMaxValue) < 0.01) {
             mMaxValue = 15.00f;
         }
         mScaleY = (mRect.height() - mTopPadding) * 1f / (mMaxValue - mMinValue);
+        calculateEnd();
     }
 
-    public void onDraw(Canvas canvas, int scrollX) {
-        if (mRect == null || mDateList == null || mDateList.size() == 0) {
-            return;
-        }
-        // 顶部线
-        float r = mGridPaint.getStrokeWidth() / 2;
-        canvas.drawLine(0, mRect.bottom - r, mRect.width(), mRect.bottom - r, mGridPaint);
-        // 画屏幕内的数据图表
-        for (int i = mStartIndex; i <= mStopIndex; i++) {
-            KLine currentPoint = mDateList.get(i);
-            int rightSidePointCount = mDateList.size() - i;
-            float currentPointX = mRectWidth + scrollX - getX(rightSidePointCount);
-            KLine prevPoint = i == 0 ? currentPoint : mDateList.get(i - 1);
-            float prevX = i == 0 ? currentPointX : mRectWidth + scrollX - getX(rightSidePointCount + 1);
-            drawChartItem(canvas, prevPoint, currentPoint, prevX, currentPointX);
-        }
-    }
-
+    protected void calculateItem(KLine point, int index) {}
+    protected void calculateEnd() {}
     protected abstract void drawChartItem(@NonNull Canvas canvas, @Nullable KLine prevPoint, @NonNull KLine currPoint, float prevX, float curX);
 
     /**
@@ -142,5 +128,12 @@ public abstract class BaseChartDraw {
 
     public void setChartItemWidth(float chartItemWidth) {
         this.mChartItemWidth = chartItemWidth;
+    }
+
+    /**
+     * 设置表格线颜色
+     */
+    public void setGridLineColor(int color) {
+        mGridPaint.setColor(color);
     }
 }

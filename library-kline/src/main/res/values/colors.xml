@@ -6,7 +6,7 @@
     <color name="colorAccent">#FF4081</color>
 
     <color name="chart_background">#202326</color>
-    <color name="chart_grid_line">#353941</color>
+    <color name="chart_grid_line_color">#353941</color>
 
     <color name="chart_red">#DF3536</color>
     <color name="chart_green">#35DF7E</color>

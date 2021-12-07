@@ -47,25 +47,20 @@ public class CandleDrawV2 extends BaseChartDraw {
         mCandleLineWidth = (int) context.getResources().getDimension(R.dimen.chart_candle_line_width);
     }
 
-    /**
-     * 计算当前显示区域，正在使用的数据块的start/end索引范围
-     * 主要关注X轴的滑动，左侧为画布原点
-     * 一屏显示多少根蜡烛图是固定的
-     */
     @Override
-    public void calculateValue(List<KLine> dataList, int mStartIndex, int mStopIndex) {
-        super.calculateValue(dataList, mStartIndex, mStopIndex);
-        for (int i = mStartIndex; i <= mStopIndex; i++) {
-            KLine point = dataList.get(i);
-            if (mMaxPrice != Math.max(mMaxPrice, point.high)) {
-                mMaxPrice = point.high;
-                mMaxPriceIndex = i;
-            }
-            if (mMinPrice != Math.min(mMinPrice, point.low)) {
-                mMinPrice = point.low;
-                mMinPriceIndex = i;
-            }
+    protected void calculateItem(KLine point, int index) {
+        if (mMaxPrice != Math.max(mMaxPrice, point.high)) {
+            mMaxPrice = point.high;
+            mMaxPriceIndex = index;
         }
+        if (mMinPrice != Math.min(mMinPrice, point.low)) {
+            mMinPrice = point.low;
+            mMinPriceIndex = index;
+        }
+    }
+
+    @Override
+    protected void calculateEnd() {
         if (mMaxValue != mMinValue) {
             float padding = (mMaxValue - mMinValue) * 0.05f;
             mMaxValue += padding;
@@ -81,22 +76,14 @@ public class CandleDrawV2 extends BaseChartDraw {
         mScaleY = (mRect.height() - mTopPadding) * 1f / (mMaxValue - mMinValue);
     }
 
-    @Override
-    public void onDraw(Canvas canvas, int scrollX) {
-        drawGird(canvas);
-        super.onDraw(canvas, scrollX);
-    }
-
     /**
      * 画表格
      *
      * @param canvas
      */
-    private void drawGird(Canvas canvas) {
-        float paintWidth = mGridPaint.getStrokeWidth()/2;
-        canvas.drawLine(0, paintWidth, mRect.width(), paintWidth, mGridPaint);
+    public void drawGird(Canvas canvas) {
         float rowSpace = (mRect.height() - mTopPadding) / GRID_ROWS;
-        for (int i = 0; i < GRID_ROWS; i++) {
+        for (int i = 0; i <= GRID_ROWS; i++) {
             canvas.drawLine(0, rowSpace * i + mRect.top + mTopPadding, mRect.width(), rowSpace * i + mRect.top + mTopPadding, mGridPaint);
         }
     }
@@ -247,4 +234,5 @@ public class CandleDrawV2 extends BaseChartDraw {
     public void setCandleWidth(float chartWidth) {
         this.mCandleWidth = chartWidth;
     }
+
 }

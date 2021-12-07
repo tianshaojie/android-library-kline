@@ -1,6 +1,5 @@
 package cn.skyui.library.chart.kline.view;
 
-import android.animation.ValueAnimator;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.database.DataSetObserver;
@@ -46,6 +45,7 @@ public class KLineViewV2 extends ScrollAndScaleView {
     private int mWidth = 0;
     private int mHeight = 0;
 
+    private Rect mKLineRect;
     private Paint mGridPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private Paint mTextPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private Paint mMaxMinPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -139,7 +139,7 @@ public class KLineViewV2 extends ScrollAndScaleView {
             setBackgroundColor(array.getColor(R.styleable.KLineView_kline_background_color, getColor(R.color.chart_background)));
             // 坐标格线条颜色宽度
             setGridLineWidth(array.getDimension(R.styleable.KLineView_kline_grid_line_width, getDimension(R.dimen.chart_grid_line_width)));
-            setGridLineColor(array.getColor(R.styleable.KLineView_kline_grid_line_color, getColor(R.color.chart_grid_line)));
+            setGridLineColor(array.getColor(R.styleable.KLineView_kline_grid_line_color, getColor(R.color.chart_grid_line_color)));
             // 各类均线宽度
             setLineWidth(array.getDimension(R.styleable.KLineView_kline_line_width, getDimension(R.dimen.chart_line_width)));
             // 默认字体大小颜色
@@ -214,11 +214,10 @@ public class KLineViewV2 extends ScrollAndScaleView {
         mDetector = new GestureDetectorCompat(getContext(), this);
         mScaleDetector = new ScaleGestureDetector(getContext(), this);
 
-        int strokeWidth = 2;
-        mGridPaint.setStrokeWidth(strokeWidth);
         mGridPaint.setAntiAlias(true);
         mGridPaint.setColor(Color.RED);
         mGridPaint.setStyle(Paint.Style.STROKE);
+        mGridPaint.setStrokeWidth(getResources().getDimension(R.dimen.chart_line_width));
 
         mCandleDraw = new CandleDrawV2(getContext());
         mVolumeDraw = new VolumeDrawV2(getContext());
@@ -231,7 +230,7 @@ public class KLineViewV2 extends ScrollAndScaleView {
         addChildDraw(ChartEnum.KDJ.name(), mKDJDraw);
         addChildDraw(ChartEnum.RSI.name(), mRSIDraw);
         addChildDraw(ChartEnum.BOOL.name(),mBOLLDraw);
-        setChildDraw(ChartEnum.MACD.name());
+//        setChildDraw(ChartEnum.MACD.name());
     }
 
     private void initView() {
@@ -243,6 +242,8 @@ public class KLineViewV2 extends ScrollAndScaleView {
     }
 
     private void initRect() {
+        int paintWidth = (int) mGridPaint.getStrokeWidth()/2;
+        mKLineRect = new Rect(paintWidth, paintWidth, mWidth-paintWidth, mHeight-paintWidth);
         if (isShowVol && isShowChild) {
             mCandleRect = new Rect(0, 0, mWidth, (int) (mHeight - mVolRectHeight - mChildRectHeight));
             mVolRect = new Rect(0, mCandleRect.bottom, mWidth, (int) (mCandleRect.bottom + mVolRectHeight));
@@ -274,35 +275,43 @@ public class KLineViewV2 extends ScrollAndScaleView {
         }
         canvas.save();
         canvas.scale(1, 1);
-        float paintWidth = mGridPaint.getStrokeWidth()/2;
-        canvas.drawLine(paintWidth, 0, paintWidth, mHeight, mGridPaint);
-        canvas.drawLine(mWidth-paintWidth, 0, mWidth-paintWidth, mHeight, mGridPaint);
-
-        calculateValue(mScrollX);
-
+        canvas.drawRect(mKLineRect, mGridPaint);
+        calculateDataIndex(mScrollX);
+        // 计算图片的最大最小值决定坐标
         mCandleDraw.calculateValue(mAdapter.getItems(), mStartIndex, mStopIndex);
-        mCandleDraw.onDraw(canvas, mScrollX);
-
         mVolumeDraw.calculateValue(mAdapter.getItems(), mStartIndex, mStopIndex);
-        mVolumeDraw.onDraw(canvas, mScrollX);
-
         mMACDDraw.calculateValue(mAdapter.getItems(), mStartIndex, mStopIndex);
-        mMACDDraw.onDraw(canvas, mScrollX);
+        mCandleDraw.drawGird(canvas);
+        // 画屏幕内的数据图表
+        for (int i = mStartIndex; i <= mStopIndex; i++) {
+            KLine currentPoint = mAdapter.getItem(i);
+            int rightSidePointCount = mAdapter.getCount() - i;
+            float currentPointX = mWidth + mScrollX - getX(rightSidePointCount);
+            KLine prevPoint = i == 0 ? currentPoint : mAdapter.getItem(i - 1);
+            float prevX = i == 0 ? currentPointX : mWidth + mScrollX - getX(rightSidePointCount + 1);
 
-//        mKDJDraw.calculateValue(mAdapter.getItems(), mStartIndex, mStopIndex);
-//        mKDJDraw.drawChart(canvas, mScrollX);
-
-//        mRSIDraw.calculateValue(mAdapter.getItems(), mStartIndex, mStopIndex);
-//        mRSIDraw.drawChart(canvas, mScrollX);
-
-//        mBOLLDraw.calculateValue(mAdapter.getItems(), mStartIndex, mStopIndex);
-//        mBOLLDraw.drawChart(canvas, mScrollX);
-
+            mCandleDraw.drawChartItem(canvas, prevPoint, currentPoint, prevX, currentPointX);
+            mVolumeDraw.drawChartItem(canvas, prevPoint, currentPoint, prevX, currentPointX);
+            mMACDDraw.drawChartItem(canvas, prevPoint, currentPoint, prevX, currentPointX);
+//            mKDJDraw.drawChartItem(canvas, prevPoint, currentPoint, prevX, currentPointX);
+//            mRSIDraw.drawChartItem(canvas, prevPoint, currentPoint, prevX, currentPointX);
+//            mBOLLDraw.drawChartItem(canvas, prevPoint, currentPoint, prevX, currentPointX);
+        }
         drawValue(canvas, isLongPress ? mSelectedIndex : mStopIndex);
         canvas.restore();
     }
 
-    public void calculateValue(int scrollX) {
+    /**
+     * 根据索引索取X坐标
+     *
+     * @param position 索引值
+     * @return X坐标
+     */
+    protected float getX(int position) {
+        return position * mCandleDraw.getChartItemWidth();
+    }
+
+    public void calculateDataIndex(int scrollX) {
         float singleChartWidth = mCandleDraw.getChartItemWidth();
         // 屏幕内+屏幕外右侧画布区域的蜡烛图数量
         float candleCount = (mWidth + scrollX) / singleChartWidth;
@@ -558,6 +567,12 @@ public class KLineViewV2 extends ScrollAndScaleView {
      */
     public void setGridLineColor(int color) {
         mGridPaint.setColor(color);
+        mCandleDraw.setGridLineColor(color);
+        mVolumeDraw.setGridLineColor(color);
+        mMACDDraw.setGridLineColor(color);
+        mKDJDraw.setGridLineColor(color);
+        mBOLLDraw.setGridLineColor(color);
+        mRSIDraw.setGridLineColor(color);
     }
 
     /**
