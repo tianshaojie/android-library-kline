@@ -259,6 +259,7 @@ public abstract class BaseKLineChartView extends ScrollAndScaleView {
         //保存之前的平移，缩放
         canvas.save();
         canvas.translate(mTranslateX * mScaleX, 0); // mTranslateX * mScaleX = -1131
+        Log.i("KLineView", " mScaleX=" + mScaleX);
         Log.i("KLineView", "mTranslateX * mScaleX=" + mTranslateX * mScaleX);
         canvas.scale(mScaleX, 1); // mScaleX = 1
         // 51, 100

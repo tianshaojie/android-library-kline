@@ -23,7 +23,7 @@ public class CandleDrawV2 extends BaseChartDraw {
 
     private static final int GRID_ROWS = 4;
 
-    protected float mCandleWidth;
+    private float mCandleWidth;
     private float mCandleLineWidth = 0;
     private boolean mCandleSolid = true; // 实心蜡烛图
 
@@ -122,14 +122,14 @@ public class CandleDrawV2 extends BaseChartDraw {
         low = getY(low);
         open = getY(open);
         close = getY(close);
-        float r = mCandleWidth / 2;
+        float r = getCandleWidth() / 2;
         float lineR = mCandleLineWidth / 2;
         // 加上间距的一半(左右间距各占一半)是X坐标起始的位置
-        x = x + (mChartItemWidth - mCandleWidth) / 2;
+        x = x + (mChartItemWidth - getCandleWidth()) / 2;
         if (open > close) {
             if (mCandleSolid) {
                 //实心
-                canvas.drawRect(x, close, x + mCandleWidth, open, mRedPaint);
+                canvas.drawRect(x, close, x + getCandleWidth(), open, mRedPaint);
                 canvas.drawRect(x + r - lineR, high, x + r + lineR, low, mRedPaint);
             } else {
                 mRedPaint.setStrokeWidth(mCandleLineWidth);
@@ -138,17 +138,17 @@ public class CandleDrawV2 extends BaseChartDraw {
                 canvas.drawLine(x + r, open, x + r, low, mRedPaint);
                 // 矩形左右竖线
                 canvas.drawLine(x, open, x, close, mRedPaint);
-                canvas.drawLine(x + mCandleWidth, open, x + mCandleWidth, close, mRedPaint);
+                canvas.drawLine(x + getCandleWidth(), open, x + getCandleWidth(), close, mRedPaint);
                 mRedPaint.setStrokeWidth(mCandleLineWidth * getScaleX());
                 // 矩形上下横线
-                canvas.drawLine(x, open, x + mCandleWidth, open, mRedPaint);
-                canvas.drawLine(x, close, x + mCandleWidth, close, mRedPaint);
+                canvas.drawLine(x, open, x + getCandleWidth(), open, mRedPaint);
+                canvas.drawLine(x, close, x + getCandleWidth(), close, mRedPaint);
             }
         } else if (open < close) {
-            canvas.drawRect(x, open, x + mCandleWidth, close, mGreenPaint);
+            canvas.drawRect(x, open, x + getCandleWidth(), close, mGreenPaint);
             canvas.drawRect(x + r - lineR, high, x + r + lineR, low, mGreenPaint);
         } else {
-            canvas.drawRect(x, open, x + mCandleWidth, close + 1, mRedPaint);
+            canvas.drawRect(x, open, x + getCandleWidth(), close + 1, mRedPaint);
             canvas.drawRect(x + r - lineR, high, x + r + lineR, low, mRedPaint);
         }
     }

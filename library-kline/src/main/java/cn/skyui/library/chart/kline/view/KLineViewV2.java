@@ -275,6 +275,12 @@ public class KLineViewV2 extends ScrollAndScaleView {
     @Override
     protected void onScaleChanged(float scale, float oldScale) {
         checkAndFixScrollX();
+        mCandleDraw.setScaleX(mScaleX);
+        mVolumeDraw.setScaleX(mScaleX);
+        mMACDDraw.setScaleX(mScaleX);
+        mKDJDraw.setScaleX(mScaleX);
+        mRSIDraw.setScaleX(mScaleX);
+        mBOLLDraw.setScaleX(mScaleX);
         // setTranslateXFromScrollX(mScrollX);
         super.onScaleChanged(scale, oldScale);
     }
@@ -311,13 +317,13 @@ public class KLineViewV2 extends ScrollAndScaleView {
     }
 
     public void calculateDataIndex(int scrollX) {
-        float singleChartWidth = mCandleDraw.getChartItemWidth();
+        float chartItemWidth = mCandleDraw.getChartItemWidth();
         // 屏幕内+屏幕外右侧画布区域的蜡烛图数量
-        float candleCount = (mWidth + scrollX) / singleChartWidth;
+        float candleCount = (mWidth + mWidth * (mScaleX) + scrollX) / chartItemWidth;
         // 屏幕内的蜡烛图数量
-        float inRectCandleCount = mWidth / singleChartWidth;
+        float inRectCandleCount = mWidth + mWidth * (mScaleX) / chartItemWidth;
         // 屏幕外右侧的蜡烛图数量
-        float scrollOutCount = scrollX / singleChartWidth;
+        float scrollOutCount = scrollX / chartItemWidth;
         mStartIndex = mAdapter.getCount() - (int) candleCount - 1;
         if (mStartIndex <= 0) {
             mStartIndex = 0;
@@ -333,7 +339,7 @@ public class KLineViewV2 extends ScrollAndScaleView {
 
     private void drawChart(Canvas canvas) {
         canvas.save();
-        canvas.scale(mScaleX, 1);
+        canvas.scale(mScaleX, 1, mWidth, mHeight);
         //canvas.translate((mScrollX + getMinTranslateX()) * mScaleX, 0);
         // 画屏幕内的数据图表
         for (int i = mStartIndex; i <= mStopIndex; i++) {

@@ -19,7 +19,7 @@ import cn.skyui.library.chart.kline.data.model.Volume;
 
 public class VolumeDrawV2 extends BaseChartDraw {
 
-    protected float mCandleWidth;
+    private float mCandleWidth;
     private Paint mTextPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private Paint mRedPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private Paint mGreenPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -36,7 +36,7 @@ public class VolumeDrawV2 extends BaseChartDraw {
     @Override
     public void drawChartItem(@NonNull Canvas canvas, @Nullable KLine prevPoint, @NonNull KLine currPoint, float prevX, float currX) {
         drawVol(canvas, currPoint.vol, currX);
-        float r = mChartItemWidth / 2;
+        float r = getChartItemWidth() / 2;
         currX+=r; prevX+=r;
         if (prevPoint.vol.ma5Volume != 0f) {
             drawLine(canvas, ma5Paint, prevX, prevPoint.vol.ma5Volume, currX, currPoint.vol.ma5Volume);;
@@ -50,11 +50,11 @@ public class VolumeDrawV2 extends BaseChartDraw {
         float top = getY(curPoint.volume);
         int bottom = mRect.bottom;
         // 加上间距的一半(左右间距各占一半)是X坐标起始的位置
-        currX = currX + (mChartItemWidth - mCandleWidth) / 2;
+        currX = currX + (getChartItemWidth() - getCandleWidth()) / 2;
         if (curPoint.closePrice >= curPoint.openPrice) {//涨
-            canvas.drawRect(currX, top, currX + mCandleWidth, bottom, mRedPaint);
+            canvas.drawRect(currX, top, currX + getCandleWidth(), bottom, mRedPaint);
         } else {
-            canvas.drawRect(currX, top, currX + mCandleWidth, bottom, mGreenPaint);
+            canvas.drawRect(currX, top, currX + getCandleWidth(), bottom, mGreenPaint);
         }
 
     }
@@ -113,5 +113,13 @@ public class VolumeDrawV2 extends BaseChartDraw {
         this.ma5Paint.setTextSize(textSize);
         this.ma10Paint.setTextSize(textSize);
         this.mTextPaint.setTextSize(textSize);
+    }
+
+    public float getCandleWidth() {
+        return mCandleWidth * mScaleX;
+    }
+
+    public void setCandleWidth(float chartWidth) {
+        this.mCandleWidth = chartWidth;
     }
 }
