@@ -25,7 +25,7 @@ public abstract class BaseChartDraw {
 
     protected Rect mRect;
     protected int mRectWidth;
-    protected int mTopPadding;
+    protected float mTopPadding;
     protected float mChartItemWidth; // 每根K线总宽度，包含间距
     protected Paint mGridPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 
@@ -42,8 +42,8 @@ public abstract class BaseChartDraw {
         mGridPaint.setColor(Color.GRAY);
         mGridPaint.setStyle(Paint.Style.STROKE);
         mGridPaint.setStrokeWidth(context.getResources().getDimension(R.dimen.chart_line_width));
-        mChartItemWidth = (int) context.getResources().getDimension(R.dimen.chart_item_width);
-        mTopPadding = (int) context.getResources().getDimension(R.dimen.chart_top_padding);
+        mChartItemWidth = context.getResources().getDimension(R.dimen.chart_item_width);
+        mTopPadding = context.getResources().getDimension(R.dimen.chart_top_padding);
     }
 
     public void setRect(Rect rect) {
@@ -93,7 +93,7 @@ public abstract class BaseChartDraw {
      * @return X坐标
      */
     protected float getX(int position) {
-        return position * mChartItemWidth;
+        return position * getChartItemWidth();
     }
 
     /**
@@ -106,7 +106,7 @@ public abstract class BaseChartDraw {
         return (mMaxValue - value) * mScaleY + mRect.top + mTopPadding;
     }
 
-    public int getTopPadding() {
+    public float getTopPadding() {
         return mTopPadding;
     }
 
@@ -123,7 +123,7 @@ public abstract class BaseChartDraw {
     }
 
     public float getChartItemWidth() {
-        return mChartItemWidth;
+        return mChartItemWidth * mScaleX;
     }
 
     public void setChartItemWidth(float chartItemWidth) {

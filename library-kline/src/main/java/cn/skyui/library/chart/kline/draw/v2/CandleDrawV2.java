@@ -228,7 +228,7 @@ public class CandleDrawV2 extends BaseChartDraw {
     }
 
     public float getCandleWidth() {
-        return mCandleWidth;
+        return mCandleWidth * mScaleX;
     }
 
     public void setCandleWidth(float chartWidth) {
