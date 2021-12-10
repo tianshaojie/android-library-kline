@@ -132,7 +132,7 @@ public abstract class ScrollAndScaleView extends RelativeLayout implements
             onLeftSide();
             mScroller.forceFinished(true);
         }
-        Log.d(ScrollAndScaleView.class.getSimpleName(), "mScrollX=" + mScrollX);
+        Log.d("KLineView", "mScrollX=" + mScrollX);
         onScrollChanged(mScrollX, 0, oldX, 0);
         invalidate();
     }

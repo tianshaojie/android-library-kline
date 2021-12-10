@@ -327,9 +327,9 @@ public class KLineViewV2 extends ScrollAndScaleView {
 
     public void calculateDataIndex(int scrollX) {
         // 屏幕内+屏幕外右侧画布区域的蜡烛图数量
-        float candleCount = (mWidth + scrollX) / getChartItemWidth();
+        float candleCount = (mWidth + scrollX*mScaleX) / getChartItemWidth();
         // 屏幕外右侧的蜡烛图数量
-        float scrollOutCount = scrollX / getChartItemWidth();
+        float scrollOutCount = scrollX*mScaleX / getChartItemWidth();
         // 屏幕内的蜡烛图数量
         float inRectCandleCount = mWidth / getChartItemWidth();
         if(isScaleIng && mStopIndex > 0) {
@@ -337,12 +337,14 @@ public class KLineViewV2 extends ScrollAndScaleView {
             mStartIndex = mStopIndex - (int)inRectCandleCount;
             if (mStartIndex <= 0) {
                 mStartIndex = 0;
+                onLeftSide();
             }
             Log.i("KLineView", "1mStartIndex=" + mStartIndex + ", mStopIndex=" + mStopIndex);
         } else {
             mStartIndex = mAdapter.getCount() - (int) candleCount - 1;
             if (mStartIndex <= 0) {
                 mStartIndex = 0;
+                onLeftSide();
             }
             mStopIndex = mAdapter.getCount() - (int) scrollOutCount - 1;
             if (mStopIndex <= inRectCandleCount) {
@@ -386,9 +388,9 @@ public class KLineViewV2 extends ScrollAndScaleView {
         for (int i = mStartIndex; i <= mStopIndex; i++) {
             KLine currentPoint = mAdapter.getItem(i);
             int rightSidePointCount = mAdapter.getCount() - i;
-            float currentPointX = mWidth + mScrollX - getX(rightSidePointCount);
+            float currentPointX = mWidth + mScrollX*mScaleX - getX(rightSidePointCount);
             KLine prevPoint = i == 0 ? currentPoint : mAdapter.getItem(i - 1);
-            float prevX = i == 0 ? currentPointX : mWidth + mScrollX - getX(rightSidePointCount + 1);
+            float prevX = i == 0 ? currentPointX : mWidth + mScrollX*mScaleX - getX(rightSidePointCount + 1);
             mCandleDraw.drawChartItem(canvas, prevPoint, currentPoint, prevX, currentPointX);
             mVolumeDraw.drawChartItem(canvas, prevPoint, currentPoint, prevX, currentPointX);
             mMACDDraw.drawChartItem(canvas, prevPoint, currentPoint, prevX, currentPointX);
@@ -496,6 +498,7 @@ public class KLineViewV2 extends ScrollAndScaleView {
     public void showLoading() {
         if (!isLoadMoreEnd && !isRefreshing) {
             isRefreshing = true;
+            isScaleIng = false;
             if (mProgressBar != null) {
                 mProgressBar.setVisibility(View.VISIBLE);
             }

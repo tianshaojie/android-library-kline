@@ -38,12 +38,12 @@ public class MyExampleActivity extends AppCompatActivity {
 
     public void onLoadMoreBegin(KLineViewV2 chart) {
         new Thread(() -> {
-            final List<KLine> data = DataRequest.getData(MyExampleActivity.this, mAdapter.getCount(), 300);
-//            try {
-//                Thread.sleep(1000);
-//            } catch (InterruptedException e) {
-//                e.printStackTrace();
-//            }
+            final List<KLine> data = DataRequest.getData(MyExampleActivity.this, mAdapter.getCount(), 100);
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
