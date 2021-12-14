@@ -1,5 +1,6 @@
 package cn.skyui.library.chart.kline.view;
 
+import android.animation.ValueAnimator;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.database.DataSetObserver;
@@ -87,6 +88,10 @@ public class KLineViewV2 extends ScrollAndScaleView {
     private boolean mLastScrollEnable;
     private boolean mLastScaleEnable;
     private KChartRefreshListener mRefreshListener;
+
+    private ValueAnimator mAnimator;
+    private long mAnimationDuration = 500;
+    private float mOverScrollRange = 0;
 
     public interface KChartRefreshListener {
         void onLoadMore(KLineViewV2 chart);
@@ -201,6 +206,16 @@ public class KLineViewV2 extends ScrollAndScaleView {
         mDetector = new GestureDetectorCompat(getContext(), this);
         mScaleDetector = new ScaleGestureDetector(getContext(), this);
 
+        mAnimator = ValueAnimator.ofFloat(0f, 1f);
+        mAnimator.setDuration(mAnimationDuration);
+        mAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator animation) {
+                invalidate();
+            }
+        });
+
+
         mGridPaint.setAntiAlias(true);
         mGridPaint.setColor(Color.RED);
         mGridPaint.setStyle(Paint.Style.STROKE);
@@ -241,7 +256,6 @@ public class KLineViewV2 extends ScrollAndScaleView {
             mChildRectHeight = oneThirdHeight;
         }
         initRect();
-        isScaleIng = false;
         setTranslateXFromScrollX(mScrollX);
     }
 
@@ -249,21 +263,17 @@ public class KLineViewV2 extends ScrollAndScaleView {
     protected void onScrollChanged(int l, int t, int oldl, int oldt) {
         super.onScrollChanged(l, t, oldl, oldt);
         setTranslateXFromScrollX(mScrollX);
-        isScaleIng = false;
     }
-
-    boolean isScaleIng = false;
 
     @Override
     protected void onScaleChanged(float scale, float oldScale) {
+//        mCandleDraw.setScaleX(mScaleX);
+//        mVolumeDraw.setScaleX(mScaleX);
+//        mMACDDraw.setScaleX(mScaleX);
+//        mKDJDraw.setScaleX(mScaleX);
+//        mRSIDraw.setScaleX(mScaleX);
+//        mBOLLDraw.setScaleX(mScaleX);
         checkAndFixScrollX();
-        isScaleIng = true;
-        mCandleDraw.setScaleX(mScaleX);
-        mVolumeDraw.setScaleX(mScaleX);
-        mMACDDraw.setScaleX(mScaleX);
-        mKDJDraw.setScaleX(mScaleX);
-        mRSIDraw.setScaleX(mScaleX);
-        mBOLLDraw.setScaleX(mScaleX);
         setTranslateXFromScrollX(mScrollX);
         super.onScaleChanged(scale, oldScale);
     }
@@ -301,17 +311,16 @@ public class KLineViewV2 extends ScrollAndScaleView {
         if (mWidth == 0 || mCandleRect.height() == 0 || mItemCount == 0) {
             return;
         }
+        this.calculateValue();
         canvas.save();
         canvas.scale(1, 1);
         canvas.drawRect(mKLineRect, mGridPaint);
-        // 计算最大最小值决定坐标
-        calculateDataIndex(mScrollX);
         mCandleDraw.calculateValue(mAdapter.getItems(), mStartIndex, mStopIndex);
         mVolumeDraw.calculateValue(mAdapter.getItems(), mStartIndex, mStopIndex);
         mMACDDraw.calculateValue(mAdapter.getItems(), mStartIndex, mStopIndex);
         mCandleDraw.drawGird(canvas);
-        drawChart(canvas);
-        drawValue(canvas, isLongPress ? mSelectedIndex : mStopIndex);
+        this.drawChart(canvas);
+        this.drawValue(canvas, isLongPress ? mSelectedIndex : mStopIndex);
         canvas.restore();
     }
 
@@ -325,72 +334,58 @@ public class KLineViewV2 extends ScrollAndScaleView {
         return position * getChartItemWidth();
     }
 
-    public void calculateDataIndex(int scrollX) {
-        // 屏幕内+屏幕外右侧画布区域的蜡烛图数量
-        float candleCount = (mWidth + scrollX*mScaleX) / getChartItemWidth();
-        // 屏幕外右侧的蜡烛图数量
-        float scrollOutCount = scrollX*mScaleX / getChartItemWidth();
-        // 屏幕内的蜡烛图数量
-        float inRectCandleCount = mWidth / getChartItemWidth();
-        if(isScaleIng && mStopIndex > 0) {
-            // mStopIndex固定不懂，计算mStartIndex
-            mStartIndex = mStopIndex - (int)inRectCandleCount;
-            if (mStartIndex <= 0) {
-                mStartIndex = 0;
-                onLeftSide();
-            }
-            Log.i("KLineView", "1mStartIndex=" + mStartIndex + ", mStopIndex=" + mStopIndex);
-        } else {
-            mStartIndex = mAdapter.getCount() - (int) candleCount - 1;
-            if (mStartIndex <= 0) {
-                mStartIndex = 0;
-                onLeftSide();
-            }
-            mStopIndex = mAdapter.getCount() - (int) scrollOutCount - 1;
-            if (mStopIndex <= inRectCandleCount) {
-                mStopIndex = (int) (inRectCandleCount);
-            }
-            if (mStopIndex > mAdapter.getCount() - 1) {
-                mStopIndex = mAdapter.getCount() - 1;
-            }
-            Log.i("KLineView", "2mStartIndex=" + mStartIndex + ", mStopIndex=" + mStopIndex);
+    /**
+     * 计算当前的显示区域
+     */
+    private void calculateValue() {
+        mStartIndex = indexOfTranslateX(xToTranslateX(0));
+        mStopIndex = indexOfTranslateX(xToTranslateX(mWidth));
+        if (mAnimator.isRunning()) {
+            float value = (float) mAnimator.getAnimatedValue();
+            mStopIndex = mStartIndex + Math.round(value * (mStopIndex - mStartIndex));
         }
-
     }
 
-    private float mDataLen = 0;
+    private int indexOfTranslateX(float translateX) {
+        return indexOfTranslateX(translateX, 0, mItemCount - 1);
+    }
 
     /**
-     * 获取平移的最小值
+     * 二分查找当前值的index
      *
      * @return
      */
-    private float getMinTranslateX() {
-        return mWidth / mScaleX - getChartItemWidth() / 2;
+    public int indexOfTranslateX(float translateX, int start, int end) {
+        if (end == start) {
+            return start;
+        }
+        if (end - start == 1) {
+            float startValue = getX(start);
+            float endValue = getX(end);
+            return Math.abs(translateX - startValue) < Math.abs(translateX - endValue) ? start : end;
+        }
+        int mid = start + (end - start) / 2;
+        float midValue = getX(mid);
+        if (translateX < midValue) {
+            return indexOfTranslateX(translateX, start, mid);
+        } else if (translateX > midValue) {
+            return indexOfTranslateX(translateX, mid, end);
+        } else {
+            return mid;
+        }
     }
 
-    /**
-     * scrollX 转换为 TranslateX
-     *
-     * @param scrollX
-     */
-    private void setTranslateXFromScrollX(int scrollX) {
-        mTranslateX = scrollX + getMinTranslateX();
-    }
-
-    private float mTranslateX = Float.MIN_VALUE;
 
     private void drawChart(Canvas canvas) {
         canvas.save();
-//        canvas.translate(mTranslateX * mScaleX, 0);
-//        canvas.scale(mScaleX, 1);
+        canvas.translate(mTranslateX * mScaleX, 0);
+        canvas.scale(mScaleX, 1);
         // 画屏幕内的数据图表
         for (int i = mStartIndex; i <= mStopIndex; i++) {
             KLine currentPoint = mAdapter.getItem(i);
-            int rightSidePointCount = mAdapter.getCount() - i;
-            float currentPointX = mWidth + mScrollX*mScaleX - getX(rightSidePointCount);
+            float currentPointX = getX(i);
             KLine prevPoint = i == 0 ? currentPoint : mAdapter.getItem(i - 1);
-            float prevX = i == 0 ? currentPointX : mWidth + mScrollX*mScaleX - getX(rightSidePointCount + 1);
+            float prevX = i == 0 ? currentPointX : getX(i - 1);;
             mCandleDraw.drawChartItem(canvas, prevPoint, currentPoint, prevX, currentPointX);
             mVolumeDraw.drawChartItem(canvas, prevPoint, currentPoint, prevX, currentPointX);
             mMACDDraw.drawChartItem(canvas, prevPoint, currentPoint, prevX, currentPointX);
@@ -412,7 +407,7 @@ public class KLineViewV2 extends ScrollAndScaleView {
         Paint.FontMetrics fm = mTextPaint.getFontMetrics();
         float textHeight = fm.descent - fm.ascent;
         if (position >= 0 && position < mItemCount) {
-            KLine point = (KLine) mAdapter.getItem(position);
+            KLine point = mAdapter.getItem(position);
             if (mCandleDraw != null) {
                 float y = mCandleRect.top + mCandleDraw.getTopPadding() - textHeight/2;
                 float x = 0;
@@ -498,7 +493,6 @@ public class KLineViewV2 extends ScrollAndScaleView {
     public void showLoading() {
         if (!isLoadMoreEnd && !isRefreshing) {
             isRefreshing = true;
-            isScaleIng = false;
             if (mProgressBar != null) {
                 mProgressBar.setVisibility(View.VISIBLE);
             }
@@ -543,15 +537,86 @@ public class KLineViewV2 extends ScrollAndScaleView {
 
     @Override
     public int getMinScrollX() {
-        return 0;
+        return (int) -(mOverScrollRange / mScaleX);
     }
 
     @Override
     public int getMaxScrollX() {
-        Log.i("KLineView", "mWidth=" + mWidth + ", getChartItemWidth=" + getChartItemWidth());
-        //float mDataLen = (mItemCount - 1) * getChartItemWidth();
-        return (int) (mDataLen - mWidth / mScaleX + getChartItemWidth() / 2);
+        return Math.round(getMaxTranslateX() - getMinTranslateX());
     }
+
+    private float mDataLen = 0;
+    private float mTranslateX = Float.MIN_VALUE;
+    /**
+     * 获取平移的最大值
+     *
+     * @return
+     */
+    private float getMaxTranslateX() {
+        if (!isFullScreen()) {
+            return getMinTranslateX();
+        }
+        return getChartItemWidth() / 2;
+    }
+
+    /**
+     * 数据是否充满屏幕
+     *
+     * @return
+     */
+    public boolean isFullScreen() {
+        return mDataLen >= mWidth / mScaleX;
+    }
+
+    /**
+     * view中的x转化为TranslateX
+     *
+     * @param x
+     * @return
+     */
+    public float xToTranslateX(float x) {
+        return -mTranslateX + x / mScaleX;
+    }
+
+    /**
+     * 获取平移的最小值
+     *
+     * @return
+     */
+    private float getMinTranslateX() {
+        return -mDataLen + mWidth / mScaleX - getChartItemWidth() / 2;
+    }
+
+    /**
+     * scrollX 转换为 TranslateX
+     *
+     * @param scrollX
+     */
+    private void setTranslateXFromScrollX(int scrollX) {
+        Log.i("KLineView", "scrollX=" + scrollX + ", getMinTranslateX=" + getMinTranslateX());
+        mTranslateX = scrollX + getMinTranslateX();
+    }
+
+
+    /**
+     * 设置超出右方后可滑动的范围
+     */
+    public void setOverScrollRange(float overScrollRange) {
+        if (overScrollRange < 0) {
+            overScrollRange = 0;
+        }
+        mOverScrollRange = overScrollRange;
+    }
+
+    /**
+     * 开始动画
+     */
+    public void startAnimation() {
+        if (mAnimator != null) {
+            mAnimator.start();
+        }
+    }
+
     /**
      * 设置刷新监听
      */
@@ -567,7 +632,6 @@ public class KLineViewV2 extends ScrollAndScaleView {
         return ContextCompat.getColor(getContext(), resId);
     }
 
-
     public void setShowVol(boolean showVol) {
         isShowVol = showVol;
     }
@@ -575,7 +639,6 @@ public class KLineViewV2 extends ScrollAndScaleView {
     public void setShowChild(boolean showChild) {
         isShowChild = showChild;
     }
-
 
     public void setVolRectHeight(float volRectHeight) {
         this.mVolRectHeight = volRectHeight;
@@ -621,7 +684,7 @@ public class KLineViewV2 extends ScrollAndScaleView {
     }
 
     public float getChartItemWidth() {
-        return mChartItemWidth * mScaleX;
+        return mChartItemWidth;
     }
 
     public void setChartItemWidth(float chartItemWidth) {

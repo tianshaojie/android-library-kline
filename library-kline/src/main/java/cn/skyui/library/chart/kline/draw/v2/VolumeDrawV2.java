@@ -116,7 +116,7 @@ public class VolumeDrawV2 extends BaseChartDraw {
     }
 
     public float getCandleWidth() {
-        return mCandleWidth * mScaleX;
+        return mCandleWidth;
     }
 
     public void setCandleWidth(float chartWidth) {

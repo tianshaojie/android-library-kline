@@ -509,7 +509,7 @@ public abstract class BaseKLineChartView extends ScrollAndScaleView {
      * @param canvas
      */
     private void drawMaxAndMin(Canvas canvas) {
-        //绘制最大值和最小值
+        //绘制最大值和最小值（画布不在偏移了）
         float x = translateXtoX(getX(mMainMinIndex));
         float y = getMainY(mMainLowMinValue);
         String LowString = "── " + mMainLowMinValue;

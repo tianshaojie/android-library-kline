@@ -123,7 +123,7 @@ public abstract class BaseChartDraw {
     }
 
     public float getChartItemWidth() {
-        return mChartItemWidth * mScaleX;
+        return mChartItemWidth;
     }
 
     public void setChartItemWidth(float chartItemWidth) {
