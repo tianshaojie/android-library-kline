@@ -1,7 +1,9 @@
 package cn.skyui.library.chart.kline.view;
 
 import android.content.Context;
+
 import androidx.core.view.GestureDetectorCompat;
+
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.GestureDetector;
@@ -123,16 +125,15 @@ public abstract class ScrollAndScaleView extends RelativeLayout implements
         }
         int oldX = mScrollX;
         mScrollX = x;
-        if (mScrollX < getMinScrollX()) {
+        if (mScrollX < getMinScrollX()) { // 向左滑动为负，getMinScrollX=0
             mScrollX = getMinScrollX();
             onRightSide();
             mScroller.forceFinished(true);
-        } else if (mScrollX > getMaxScrollX()) {
+        } else if (mScrollX > getMaxScrollX()) { // 向左滑动为正，getMaxScrollX=总蜡烛数量对应的长度-K线图宽度
             mScrollX = getMaxScrollX();
             onLeftSide();
             mScroller.forceFinished(true);
         }
-        Log.d("KLineView", "mScrollX=" + mScrollX);
         onScrollChanged(mScrollX, 0, oldX, 0);
         invalidate();
     }
@@ -142,9 +143,12 @@ public abstract class ScrollAndScaleView extends RelativeLayout implements
         if (!isScaleEnable()) {
             return false;
         }
+        if(getMaxScrollX() == 0) {
+            onLeftSide();
+            return true;
+        }
         float oldScale = mScaleX;
         mScaleX *= detector.getScaleFactor();
-        Log.i("KLineView", "onScale=" + mScaleX);
         if (mScaleX < mScaleXMin) {
             mScaleX = mScaleXMin;
         } else if (mScaleX > mScaleXMax) {
@@ -166,7 +170,16 @@ public abstract class ScrollAndScaleView extends RelativeLayout implements
 
     @Override
     public void onScaleEnd(ScaleGestureDetector detector) {
+    }
 
+    protected void checkAndFixScrollX() {
+        if (mScrollX < getMinScrollX()) {
+            mScrollX = getMinScrollX();
+            mScroller.forceFinished(true);
+        } else if (mScrollX > getMaxScrollX()) {
+            mScrollX = getMaxScrollX();
+            mScroller.forceFinished(true);
+        }
     }
 
     @Override
@@ -250,18 +263,6 @@ public abstract class ScrollAndScaleView extends RelativeLayout implements
      */
     public boolean isMultipleTouch() {
         return mMultipleTouch;
-    }
-
-    protected void checkAndFixScrollX() {
-        if (mScrollX < getMinScrollX()) {
-            mScrollX = getMinScrollX();
-            Log.i("KLineView", "mScrollX1=" + mScrollX);
-            mScroller.forceFinished(true);
-        } else if (mScrollX > getMaxScrollX()) {
-            Log.i("KLineView", "mScrollX2=" + mScrollX);
-            mScrollX = getMaxScrollX();
-            mScroller.forceFinished(true);
-        }
     }
 
     public float getScaleXMax() {

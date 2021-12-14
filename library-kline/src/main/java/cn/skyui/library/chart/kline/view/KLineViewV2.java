@@ -43,6 +43,8 @@ public class KLineViewV2 extends ScrollAndScaleView {
     private int mStartIndex = 0; // 可见区域数据List的开始索引位置
     private int mStopIndex = 0;  // 可见区域数据List的结束索引位置
     private int mSelectedIndex;
+    private float mDataLen = 0;
+    private float mTranslateX = Float.MIN_VALUE;
 
     private int mWidth = 0;
     private int mHeight = 0;
@@ -545,8 +547,6 @@ public class KLineViewV2 extends ScrollAndScaleView {
         return Math.round(getMaxTranslateX() - getMinTranslateX());
     }
 
-    private float mDataLen = 0;
-    private float mTranslateX = Float.MIN_VALUE;
     /**
      * 获取平移的最大值
      *
@@ -557,6 +557,15 @@ public class KLineViewV2 extends ScrollAndScaleView {
             return getMinTranslateX();
         }
         return getChartItemWidth() / 2;
+    }
+
+    /**
+     * 获取平移的最小值
+     *
+     * @return
+     */
+    private float getMinTranslateX() {
+        return -mDataLen + mWidth / mScaleX - getChartItemWidth() / 2;
     }
 
     /**
@@ -579,21 +588,11 @@ public class KLineViewV2 extends ScrollAndScaleView {
     }
 
     /**
-     * 获取平移的最小值
-     *
-     * @return
-     */
-    private float getMinTranslateX() {
-        return -mDataLen + mWidth / mScaleX - getChartItemWidth() / 2;
-    }
-
-    /**
      * scrollX 转换为 TranslateX
      *
      * @param scrollX
      */
     private void setTranslateXFromScrollX(int scrollX) {
-        Log.i("KLineView", "scrollX=" + scrollX + ", getMinTranslateX=" + getMinTranslateX());
         mTranslateX = scrollX + getMinTranslateX();
     }
 
