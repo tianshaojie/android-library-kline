@@ -11,8 +11,8 @@
     <color name="chart_red">#DF3536</color>
     <color name="chart_green">#35DF7E</color>
 
-    <color name="chart_text">#B1B2B6</color>
-    <color name="chart_max_min_text">#FFFFFF</color>
+    <color name="chart_text_color">#B1B2B6</color>
+    <color name="chart_max_min_text_color">#FFFFFF</color>
 
     <color name="chart_ma5">#18CCF6</color>
     <color name="chart_ma10">#FE5EDF</color>

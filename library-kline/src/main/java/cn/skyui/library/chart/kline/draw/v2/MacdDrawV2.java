@@ -21,7 +21,6 @@ import cn.skyui.library.chart.kline.data.model.Macd;
 public class MacdDrawV2 extends BaseChartDraw {
 
     private float mCandleWidth;
-    private Paint mTextPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private Paint mRedPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private Paint mGreenPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private Paint mDIFPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -42,7 +41,7 @@ public class MacdDrawV2 extends BaseChartDraw {
 
     @Override
     public void drawChartItem(@NonNull Canvas canvas, @Nullable KLine prevPoint, @NonNull KLine currPoint, float prevX, float currX) {
-        drawMACD(canvas, currX, currPoint.macd.macd);
+        drawMacd(canvas, currX, currPoint.macd.macd);
         float r = getChartItemWidth() / 2;
         currX+=r; prevX+=r;
         drawLine(canvas, mDIFPaint, prevX, prevPoint.macd.dea, currX, currPoint.macd.dea);
@@ -56,7 +55,7 @@ public class MacdDrawV2 extends BaseChartDraw {
      * @param x
      * @param macd
      */
-    private void drawMACD(Canvas canvas, float x, float macd) {
+    private void drawMacd(Canvas canvas, float x, float macd) {
         float macdy = getY(macd);
         // 加上间距的一半(左右间距各占一半)是X坐标起始的位置
         x = x + (getChartItemWidth() - getCandleWidth()) / 2;
@@ -68,7 +67,7 @@ public class MacdDrawV2 extends BaseChartDraw {
         }
     }
 
-    public void drawText(@NonNull Canvas canvas, @NonNull KLine chartData, float x, float y) {
+    public void drawTitle(@NonNull Canvas canvas, @NonNull KLine chartData, float x, float y) {
         Macd point = chartData.macd;
         String text = "MACD(12,26,9)  ";
         canvas.drawText(text, x, y, mTextPaint);
@@ -107,10 +106,10 @@ public class MacdDrawV2 extends BaseChartDraw {
     /**
      * 设置MACD的宽度
      *
-     * @param MACDWidth
+     * @param macdWidth
      */
-    public void setMACDWidth(float MACDWidth) {
-//        mCandleWidth = MACDWidth;
+    public void setMACDWidth(float macdWidth) {
+        mCandleWidth = macdWidth;
     }
 
     /**

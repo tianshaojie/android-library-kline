@@ -20,7 +20,6 @@ import cn.skyui.library.chart.kline.data.model.Volume;
 public class VolumeDrawV2 extends BaseChartDraw {
 
     private float mCandleWidth;
-    private Paint mTextPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private Paint mRedPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private Paint mGreenPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private Paint ma5Paint = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -56,10 +55,9 @@ public class VolumeDrawV2 extends BaseChartDraw {
         } else {
             canvas.drawRect(currX, top, currX + getCandleWidth(), bottom, mGreenPaint);
         }
-
     }
 
-    public void drawText(@NonNull Canvas canvas, @NonNull KLine chartData, float x, float y) {
+    public void drawTitle(@NonNull Canvas canvas, @NonNull KLine chartData, float x, float y) {
         Volume point = chartData.vol;
         String text = "VOL:" + KLine.getValueFormatter(ChartEnum.VOL.name()).format(point.volume) + "  ";
         canvas.drawText(text, x, y, mTextPaint);
@@ -70,16 +68,6 @@ public class VolumeDrawV2 extends BaseChartDraw {
         text = "MA10:" + KLine.getValueFormatter(ChartEnum.VOL.name()).format(point.ma10Volume) + "  ";
         canvas.drawText(text, x, y, ma10Paint);
     }
-
-    /**
-     * 设置 MA5 线的颜色
-     *
-     * @param color
-     */
-    public void setTextColor(int color) {
-        this.mTextPaint.setColor(color);
-    }
-
 
     /**
      * 设置 MA5 线的颜色

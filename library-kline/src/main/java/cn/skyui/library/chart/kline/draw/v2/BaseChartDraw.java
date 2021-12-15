@@ -12,8 +12,10 @@ import androidx.annotation.Nullable;
 import java.util.List;
 
 import cn.skyui.library.chart.kline.R;
+import cn.skyui.library.chart.kline.base.IValueFormatter;
 import cn.skyui.library.chart.kline.data.ChartEnum;
 import cn.skyui.library.chart.kline.data.model.KLine;
+import cn.skyui.library.chart.kline.formatter.ValueFormatter;
 
 public abstract class BaseChartDraw {
 
@@ -28,6 +30,7 @@ public abstract class BaseChartDraw {
     protected float mTopPadding;
     protected float mChartItemWidth; // 每根K线总宽度，包含间距
     protected Paint mGridPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    protected Paint mTextPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 
     protected float mMaxValue = Float.MIN_VALUE;
     protected float mMinValue = Float.MAX_VALUE;
@@ -57,6 +60,7 @@ public abstract class BaseChartDraw {
         mStopIndex = stopIndex;
         mMaxValue = Float.MIN_VALUE;
         mMinValue = Float.MAX_VALUE;
+        calculateBegin();
         for (int i = mStartIndex; i <= mStopIndex; i++) {
             KLine point = dataList.get(i);
             mMaxValue = Math.max(mMaxValue, point.getChildData(mChartType.name()).getMaxValue());
@@ -70,6 +74,7 @@ public abstract class BaseChartDraw {
         calculateEnd();
     }
 
+    protected void calculateBegin() {}
     protected void calculateItem(KLine point, int index) {}
     protected void calculateEnd() {}
     protected abstract void drawChartItem(@NonNull Canvas canvas, @Nullable KLine prevPoint, @NonNull KLine currPoint, float prevX, float curX);
@@ -84,6 +89,19 @@ public abstract class BaseChartDraw {
      */
     protected void drawLine(Canvas canvas, Paint paint, float startX, float startValue, float stopX, float stopValue) {
         canvas.drawLine(startX, getY(startValue), stopX, getY(stopValue), paint);
+    }
+
+    /**
+     * 画子图坐标值
+     * @param canvas
+     */
+    public void drawValue(@NonNull Canvas canvas) {
+        Paint.FontMetrics fm = mTextPaint.getFontMetrics();
+        float textHeight = fm.descent - fm.ascent;
+        float baseLine = (textHeight - fm.bottom - fm.top) / 2;
+        canvas.drawText(KLine.getValueFormatter(mChartType.name()).format(mMaxValue),
+                mRectWidth - calculateWidth(KLine.getValueFormatter(mChartType.name()).format(mMaxValue)),
+                mRect.top + baseLine - textHeight + mTopPadding, mTextPaint);
     }
 
     /**
@@ -104,6 +122,45 @@ public abstract class BaseChartDraw {
      */
     protected float getY(float value) {
         return (mMaxValue - value) * mScaleY + mRect.top + mTopPadding;
+    }
+
+    /**
+     * 解决text居中的问题
+     */
+    public float fixTextY(float y) {
+        Paint.FontMetrics fontMetrics = mTextPaint.getFontMetrics();
+        return (y + (fontMetrics.descent - fontMetrics.ascent) / 2 - fontMetrics.descent);
+    }
+
+    /**
+     * 计算文本长度
+     *
+     * @return
+     */
+    public int calculateWidth(String text) {
+        Rect rect = new Rect();
+        mTextPaint.getTextBounds(text, 0, text.length(), rect);
+        return rect.width() + 5;
+    }
+
+    /**
+     * 格式化值
+     */
+    public String formatValue(float value) {
+        return getValueFormatter().format(value);
+    }
+
+    protected IValueFormatter getValueFormatter() {
+        return new ValueFormatter();
+    }
+
+    /**
+     * 设置 MA5 线的颜色
+     *
+     * @param color
+     */
+    public void setTextColor(int color) {
+        this.mTextPaint.setColor(color);
     }
 
     public float getTopPadding() {

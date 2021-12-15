@@ -3,6 +3,7 @@ package cn.skyui.library.chart.kline.draw.v2;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.graphics.Rect;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -32,6 +33,7 @@ public class CandleDrawV2 extends BaseChartDraw {
     private int mMaxPriceIndex = 0; // 最高价的数据索引
     private int mMinPriceIndex = 0; // 最低价的数据索引
 
+    private Paint mMaxMinPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private Paint mRedPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private Paint mGreenPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private Paint ma5Paint = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -45,6 +47,14 @@ public class CandleDrawV2 extends BaseChartDraw {
         mGreenPaint.setColor(ContextCompat.getColor(context, R.color.chart_green));
         mCandleWidth = (int) context.getResources().getDimension(R.dimen.chart_candle_width);
         mCandleLineWidth = (int) context.getResources().getDimension(R.dimen.chart_candle_line_width);
+    }
+
+    @Override
+    protected void calculateBegin() {
+        mMaxPriceIndex = mStartIndex;
+        mMinPriceIndex = mStartIndex;
+        mMaxPrice = Float.MIN_VALUE;
+        mMinPrice = Float.MAX_VALUE;
     }
 
     @Override
@@ -73,7 +83,7 @@ public class CandleDrawV2 extends BaseChartDraw {
                 mMaxValue = 1.0f;
             }
         }
-        mScaleY = (mRect.height() - mTopPadding) * 1f / (mMaxValue - mMinValue);
+        mScaleY = (mRect.height() - mTopPadding) * 1 / (mMaxValue - mMinValue);
     }
 
     /**
@@ -151,8 +161,7 @@ public class CandleDrawV2 extends BaseChartDraw {
         }
     }
 
-    public void drawText(@NonNull Canvas canvas, @NonNull KLine chartData, float x, float y) {
-        Candle point = (Candle) chartData;
+    public void drawTitle(@NonNull Canvas canvas, @NonNull KLine point, float x, float y) {
         String text = "MA5:" + KLine.getValueFormatter(ChartEnum.CANDLE.name()).format(point.ma5Price) + "  ";
         canvas.drawText(text, x, y, ma5Paint);
         x += ma5Paint.measureText(text);
@@ -162,6 +171,100 @@ public class CandleDrawV2 extends BaseChartDraw {
         text = "MA20:" + KLine.getValueFormatter(ChartEnum.CANDLE.name()).format(point.ma20Price) + "  ";
         canvas.drawText(text, x, y, ma20Paint);
     }
+
+    /**
+     * 绘制坐标值
+     * @param canvas
+     */
+    public void drawValue(@NonNull Canvas canvas) {
+        Paint.FontMetrics fm = mTextPaint.getFontMetrics();
+        float textHeight = fm.descent - fm.ascent;
+        float baseLine = (textHeight - fm.bottom - fm.top) / 2;
+        canvas.drawText(formatValue(mMaxValue), 0, baseLine + mRect.top + mTopPadding, mTextPaint);
+        canvas.drawText(formatValue(mMinValue), 0, mRect.bottom - textHeight + baseLine, mTextPaint);
+        float rowValue = (mMaxValue - mMinValue) / GRID_ROWS;
+        float rowSpace = (mRect.height()-mTopPadding) / GRID_ROWS;
+        for (int i = 1; i < GRID_ROWS; i++) {
+            String text = formatValue(rowValue * (GRID_ROWS - i) + mMinValue);
+            canvas.drawText(text, mRect.left, fixTextY(rowSpace * i + mRect.top + mTopPadding), mTextPaint);
+        }
+    }
+
+    /**
+     * 绘制最大值最小值
+     * @param canvas
+     * @param mTranslateX
+     */
+    public void drawMaxMin(Canvas canvas, float mTranslateX) {
+        //绘制最大值和最小值（画布不在偏移了）
+        float x = translateXtoX(getX(mMinPriceIndex), mTranslateX);
+        float y = getY(mMinPrice);
+        String LowString = "── " + mMinPrice;
+        //计算显示位置
+        //计算文本宽度
+        int lowStringWidth = calculateMaxMin(LowString).width();
+        int lowStringHeight = calculateMaxMin(LowString).height();
+        if (x < mRectWidth / 2f) {
+            //画右边
+            canvas.drawText(LowString, x, y + lowStringHeight / 2f, mMaxMinPaint);
+        } else {
+            //画左边
+            LowString = mMinPrice + " ──";
+            canvas.drawText(LowString, x - lowStringWidth, y + lowStringHeight / 2f, mMaxMinPaint);
+        }
+
+        x = translateXtoX(getX(mMaxPriceIndex), mTranslateX);
+        y = getY(mMaxPrice);
+
+        String highString = "── " + mMaxPrice;
+        int highStringWidth = calculateMaxMin(highString).width();
+        int highStringHeight = calculateMaxMin(highString).height();
+        if (x < mRectWidth / 2f) {
+            //画右边
+            canvas.drawText(highString, x, y + highStringHeight / 2f, mMaxMinPaint);
+        } else {
+            //画左边
+            highString = mMaxPrice + " ──";
+            canvas.drawText(highString, x - highStringWidth, y + highStringHeight / 2f, mMaxMinPaint);
+        }
+    }
+
+    /**
+     * translateX转化为view中的x
+     *
+     * @param translateX
+     * @return
+     */
+    public float translateXtoX(float x, float translateX) {
+        return (x + translateX) * mScaleX;
+    }
+
+
+    /**
+     * 计算文本长度
+     *
+     * @return
+     */
+    private Rect calculateMaxMin(String text) {
+        Rect rect = new Rect();
+        mMaxMinPaint.getTextBounds(text, 0, text.length(), rect);
+        return rect;
+    }
+
+    /**
+     * 设置最大值/最小值文字颜色
+     */
+    public void setMaxMinTextColor(int color) {
+        mMaxMinPaint.setColor(color);
+    }
+
+    /**
+     * 设置最大值/最小值文字大小
+     */
+    public void setMaxMinTextSize(float textSize) {
+        mMaxMinPaint.setTextSize(textSize);
+    }
+
 
     /**
      * 设置蜡烛线宽度
@@ -212,6 +315,7 @@ public class CandleDrawV2 extends BaseChartDraw {
      * 设置文字大小
      */
     public void setTextSize(float textSize) {
+        mTextPaint.setTextSize(textSize);
         ma20Paint.setTextSize(textSize);
         ma10Paint.setTextSize(textSize);
         ma5Paint.setTextSize(textSize);

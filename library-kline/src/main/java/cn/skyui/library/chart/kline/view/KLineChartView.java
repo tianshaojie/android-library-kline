@@ -90,10 +90,10 @@ public class KLineChartView extends BaseKLineChartView {
                 setPointWidth(array.getDimension(R.styleable.KChartView_kc_point_width, getDimension(R.dimen.chart_point_width)));
                 // 默认字体大小颜色
                 setTextSize(array.getDimension(R.styleable.KChartView_kc_text_size, getDimension(R.dimen.chart_text_size)));
-                setTextColor(array.getColor(R.styleable.KChartView_kc_text_color, getColor(R.color.chart_text)));
+                setTextColor(array.getColor(R.styleable.KChartView_kc_text_color, getColor(R.color.chart_text_color)));
                 // 设置最大值/最小值文字大小颜色
                 setMaxMinTextSize(array.getDimension(R.styleable.KChartView_kc_max_min_text_size, getDimension(R.dimen.chart_max_min_text_size)));
-                setMaxMinTextColor(array.getColor(R.styleable.KChartView_kc_max_min_text_color, getColor(R.color.chart_max_min_text)));
+                setMaxMinTextColor(array.getColor(R.styleable.KChartView_kc_max_min_text_color, getColor(R.color.chart_max_min_text_color)));
                 // 选中十字线颜色宽度
                 setSelectedXLineColor(array.getColor(R.styleable.KChartView_kc_selected_x_line_color, getColor(R.color.chart_selected_x_line_color)));
                 setSelectedXLineWidth(array.getDimension(R.styleable.KChartView_kc_selected_x_line_width, getDimension(R.dimen.chart_selected_x_line_width)));
