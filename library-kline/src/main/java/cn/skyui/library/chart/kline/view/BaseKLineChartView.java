@@ -9,7 +9,9 @@ import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Rect;
 import android.graphics.RectF;
+
 import androidx.core.view.GestureDetectorCompat;
+
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -187,7 +189,7 @@ public abstract class BaseKLineChartView extends ScrollAndScaleView {
             mMainRect = new Rect(0, mTopPadding, mWidth, mTopPadding + mMainHeight);
             mVolRect = new Rect(0, mMainRect.bottom + mChildPadding, mWidth, mMainRect.bottom + mVolHeight);
             mChildRect = new Rect(0, mVolRect.bottom + mChildPadding, mWidth, mVolRect.bottom + mChildHeight);
-        } else if(isShowVol) {
+        } else if (isShowVol) {
             int mMainHeight = (int) (displayHeight * 0.75f);
             int mVolHeight = (int) (displayHeight * 0.25f);
             mMainRect = new Rect(0, mTopPadding, mWidth, mTopPadding + mMainHeight);
@@ -458,6 +460,7 @@ public abstract class BaseKLineChartView extends ScrollAndScaleView {
 
     /**
      * draw选择器
+     *
      * @param canvas
      */
     public void drawSelector(Canvas canvas) {
@@ -469,10 +472,10 @@ public abstract class BaseKLineChartView extends ScrollAndScaleView {
         float margin = ViewUtil.dp2Px(getContext(), 5);
         float width = 0;
         float left;
-        float top = margin+getTopPadding();
+        float top = margin + getTopPadding();
         float height = padding * 8 + textHeight * 5;
 
-        Candle point = (Candle) getItem(index);
+        Candle point = getItem(index);
         List<String> strings = new ArrayList<>();
         strings.add(formatDateTime(getAdapter().getDate(index)));
         strings.add("高:" + point.high);
@@ -583,6 +586,7 @@ public abstract class BaseKLineChartView extends ScrollAndScaleView {
     public float getMainY(float value) {
         return (mMainMaxValue - value) * mMainScaleY + mMainRect.top;
     }
+
     public float getVolY(float value) {
         return (mVolMaxValue - value) * mVolScaleY + mVolRect.top;
     }
@@ -1202,14 +1206,16 @@ public abstract class BaseKLineChartView extends ScrollAndScaleView {
 
     /**
      * 设置选择器文字大小
+     *
      * @param textSize
      */
-    public void setSelectorWindowTextSize(float textSize){
+    public void setSelectorWindowTextSize(float textSize) {
         mSelectorWindowTextPaint.setTextSize(textSize);
     }
 
     /**
      * 设置选择器背景
+     *
      * @param color
      */
     public void setSelectorWindowBackgroundColor(int color) {

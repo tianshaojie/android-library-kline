@@ -82,7 +82,7 @@ public abstract class BaseChartDraw {
     protected void calculateBegin() {}
     protected void calculateItem(KLine point, int index) {}
     protected void calculateEnd() {}
-    protected abstract void drawChartItem(@NonNull Canvas canvas, @Nullable KLine prevPoint, @NonNull KLine currPoint, float prevX, float curX);
+    public abstract void drawChartItem(@NonNull Canvas canvas, @Nullable KLine prevPoint, @NonNull KLine currPoint, float prevX, float curX);
 
     /**
      * 在子区域画线
@@ -125,7 +125,7 @@ public abstract class BaseChartDraw {
      * @param value 价格
      * @return Y坐标
      */
-    protected float getY(float value) {
+    public float getY(float value) {
         return (mMaxValue - value) * mScaleY + mRect.top + mTopPadding;
     }
 

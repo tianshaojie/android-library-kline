@@ -19,9 +19,11 @@
     <color name="chart_ma20">#E7A520</color>
     <color name="chart_white">#FFFFFF</color>
 
-    <color name="chart_selector_window_bg_color">#c830343C</color>
+    <color name="chart_selector_window_bg_color">#c8DF3536</color>
+    <color name="chart_selector_window_text_color">#FFFFFF</color>
     <color name="chart_selected_x_line_color">#FFFFFF</color>
     <color name="chart_selected_y_line_color">#8040424D</color>
-    <color name="chart_selected_point_text_bg_color">#202326</color>
+    <color name="chart_selected_point_text_color">#202326</color>
+    <color name="chart_selected_point_text_bg_color">#FFFFFF</color>
 
 </resources>

@@ -22,11 +22,13 @@
         <attr name="kline_selected_y_line_color" format="color"/>
 
         <attr name="kline_selector_window_bg_color" format="color"/>
+<!--        <attr name="kline_selector_point_window_text_color" format="color"/>-->
         <attr name="kline_selected_window_text_size" format="dimension"/>
 
         <attr name="kline_line_width" format="dimension"/>
         <attr name="kline_item_width" format="dimension"/>
         <attr name="kline_background_color" format="color"/>
+        <attr name="kline_selected_point_text_color" format="color"/>
         <attr name="kline_selected_point_text_bg_color" format="color"/>
         <attr name="kline_selected_line_color" format="color"/>
         <attr name="kline_selected_line_width" format="dimension"/>

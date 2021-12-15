@@ -7,8 +7,12 @@ import android.database.DataSetObserver;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Path;
 import android.graphics.Rect;
+import android.graphics.RectF;
 import android.util.AttributeSet;
+import android.util.Log;
+import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.View;
 import android.widget.ProgressBar;
@@ -18,12 +22,15 @@ import androidx.annotation.DimenRes;
 import androidx.core.content.ContextCompat;
 import androidx.core.view.GestureDetectorCompat;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import cn.skyui.library.chart.kline.R;
 import cn.skyui.library.chart.kline.adapter.KLineChartAdapter;
 import cn.skyui.library.chart.kline.data.ChartEnum;
+import cn.skyui.library.chart.kline.data.model.Candle;
 import cn.skyui.library.chart.kline.data.model.KLine;
 import cn.skyui.library.chart.kline.draw.v2.BaseChartDraw;
 import cn.skyui.library.chart.kline.draw.v2.BollDrawV2;
@@ -33,6 +40,8 @@ import cn.skyui.library.chart.kline.draw.v2.MacdDrawV2;
 import cn.skyui.library.chart.kline.draw.v2.RsiDrawV2;
 import cn.skyui.library.chart.kline.draw.v2.VolumeDrawV2;
 import cn.skyui.library.chart.kline.formatter.DateFormatter;
+import cn.skyui.library.chart.kline.formatter.ValueFormatter;
+import cn.skyui.library.chart.kline.utils.ViewUtil;
 
 /**
  * k线图
@@ -81,6 +90,7 @@ public class KLineViewV2 extends ScrollAndScaleView {
     private Paint mSelectorWindowBackgroundPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 
     // 长按十字线/文字
+    private Paint mSelectedTextPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private Paint mSelectedXLinePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private Paint mSelectedYLinePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private Paint mSelectedPointPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -97,8 +107,14 @@ public class KLineViewV2 extends ScrollAndScaleView {
     private long mAnimationDuration = 500;
     private float mOverScrollRange = 0;
 
+    private OnSelectedChangedListener mOnSelectedChangedListener = null;
+
     public interface KChartRefreshListener {
         void onLoadMore(KLineViewV2 chart);
+    }
+
+    public interface OnSelectedChangedListener {
+        void onSelectedChanged(KLineViewV2 view, Object point, int index);
     }
 
     private DataSetObserver mDataSetObserver = new DataSetObserver() {
@@ -164,13 +180,15 @@ public class KLineViewV2 extends ScrollAndScaleView {
             // 选中十字线颜色宽度
             setSelectedXLineColor(array.getColor(R.styleable.KLineView_kline_selected_x_line_color, getColor(R.color.chart_selected_x_line_color)));
             setSelectedXLineWidth(array.getDimension(R.styleable.KLineView_kline_selected_x_line_width, getDimension(R.dimen.chart_selected_x_line_width)));
-            setSelectedYLineColor(array.getColor(R.styleable.KLineView_kline_selected_y_line_color, getColor(R.color.chart_selected_y_line_color)));
-            setSelectedYLineWidth(array.getDimension(R.styleable.KLineView_kline_selected_y_line_width, getDimension(R.dimen.chart_selected_y_line_width)));
+            setSelectedYLineColor(array.getColor(R.styleable.KLineView_kline_selected_y_line_color, getColor(R.color.chart_selected_x_line_color)));
+            setSelectedYLineWidth(array.getDimension(R.styleable.KLineView_kline_selected_y_line_width, getDimension(R.dimen.chart_selected_x_line_width)));
             // 选中十字线文字框的背景色
+            setSelectedPaintTextColor(array.getColor(R.styleable.KLineView_kline_selected_point_text_color, getColor(R.color.chart_selected_point_text_color)));
             setSelectedPointTextBackgroundColor(array.getColor(R.styleable.KLineView_kline_selected_point_text_bg_color, getColor(R.color.chart_selected_point_text_bg_color)));
             // 选中浮窗背景色字体色
             setSelectorWindowBackgroundColor(array.getColor(R.styleable.KLineView_kline_selector_window_bg_color, getColor(R.color.chart_selector_window_bg_color)));
             setSelectorWindowTextSize(array.getDimension(R.styleable.KLineView_kline_selected_window_text_size, getDimension(R.dimen.chart_selected_window_text_size)));
+            setSelectorWindowTextColor(array.getColor(R.styleable.KLineView_kline_selector_window_bg_color, getColor(R.color.chart_selector_window_text_color)));
 
             //candle
             setMa5Color(array.getColor(R.styleable.KLineView_kline_dif_color, getColor(R.color.chart_ma5)));
@@ -200,7 +218,7 @@ public class KLineViewV2 extends ScrollAndScaleView {
             setMbColor(array.getColor(R.styleable.KLineView_kline_dea_color, getColor(R.color.chart_ma10)));
             setDnColor(array.getColor(R.styleable.KLineView_kline_macd_color, getColor(R.color.chart_ma20)));
         } catch (Exception e) {
-            e.printStackTrace();
+            Log.e("KLineView", e.getLocalizedMessage());
         } finally {
             array.recycle();
         }
@@ -225,6 +243,10 @@ public class KLineViewV2 extends ScrollAndScaleView {
         mGridPaint.setColor(Color.RED);
         mGridPaint.setStyle(Paint.Style.STROKE);
         mGridPaint.setStrokeWidth(getResources().getDimension(R.dimen.chart_line_width));
+
+        mSelectorFramePaint.setStrokeWidth(ViewUtil.dp2Px(getContext(), 0.6f));
+        mSelectorFramePaint.setStyle(Paint.Style.STROKE);
+        mSelectorFramePaint.setColor(Color.WHITE);
 
         mCandleDraw = new CandleDrawV2(getContext());
         mVolumeDraw = new VolumeDrawV2(getContext());
@@ -274,15 +296,34 @@ public class KLineViewV2 extends ScrollAndScaleView {
     protected void onScaleChanged(float scale, float oldScale) {
         mCandleDraw.setScaleX(mScaleX);
         mVolumeDraw.setScaleX(mScaleX);
-        mMACDDraw.setScaleX(mScaleX);
-        mKDJDraw.setScaleX(mScaleX);
-        mRSIDraw.setScaleX(mScaleX);
-        mBOLLDraw.setScaleX(mScaleX);
+        for(String key : mChildDraws.keySet()) {
+            mChildDraws.get(key).setScaleX(mScaleX);
+        }
         checkAndFixScrollX();
         setTranslateXFromScrollX(mScrollX);
         super.onScaleChanged(scale, oldScale);
     }
 
+    @Override
+    public void onLongPress(MotionEvent e) {
+        super.onLongPress(e);
+        int lastIndex = mSelectedIndex;
+        calculateSelectedX(e.getX());
+        if (lastIndex != mSelectedIndex) {
+            onSelectedChanged(this, mAdapter.getItem(mSelectedIndex), mSelectedIndex);
+        }
+        invalidate();
+    }
+
+    private void calculateSelectedX(float x) {
+        mSelectedIndex = indexOfTranslateX(xToTranslateX(x));
+        if (mSelectedIndex < mStartIndex) {
+            mSelectedIndex = mStartIndex;
+        }
+        if (mSelectedIndex > mStopIndex) {
+            mSelectedIndex = mStopIndex;
+        }
+    }
 
     private void initRect() {
         int paintWidth = (int) mGridPaint.getStrokeWidth()/2;
@@ -305,10 +346,9 @@ public class KLineViewV2 extends ScrollAndScaleView {
 
         mCandleDraw.setRect(mCandleRect);
         mVolumeDraw.setRect(mVolRect);
-        mMACDDraw.setRect(mChildRect);
-        mKDJDraw.setRect(mChildRect);
-        mRSIDraw.setRect(mChildRect);
-        mBOLLDraw.setRect(mChildRect);
+        for(String key : mChildDraws.keySet()) {
+            mChildDraws.get(key).setRect(mChildRect);
+        }
     }
 
     @Override
@@ -326,12 +366,14 @@ public class KLineViewV2 extends ScrollAndScaleView {
         mCandleDraw.calculateValue(mAdapter.getItems(), mStartIndex, mStopIndex);
         mVolumeDraw.calculateValue(mAdapter.getItems(), mStartIndex, mStopIndex);
         mMACDDraw.calculateValue(mAdapter.getItems(), mStartIndex, mStopIndex);
-        this.drawChart(canvas);
         mCandleDraw.drawGird(canvas);
+        this.drawChart(canvas);
         mCandleDraw.drawMaxMin(canvas, mTranslateX);
         this.drawTitle(canvas, isLongPress ? mSelectedIndex : mStopIndex);
         this.drawValue(canvas);
         this.drawTime(canvas);
+        this.drawSelector(canvas);
+        this.drawSelectorWindow(canvas);
         canvas.restore();
     }
 
@@ -404,8 +446,29 @@ public class KLineViewV2 extends ScrollAndScaleView {
 //            mRSIDraw.drawChartItem(canvas, prevPoint, currentPoint, prevX, currentPointX);
 //            mBOLLDraw.drawChartItem(canvas, prevPoint, currentPoint, prevX, currentPointX);
         }
+        drawSelectedLine(canvas);
         //还原 平移缩放
         canvas.restore();
+    }
+
+    private void drawSelectedLine(Canvas canvas) {
+        //画选择线
+        if (isLongPress) {
+            KLine point = (KLine) mAdapter.getItem(mSelectedIndex);
+            float x = getX(mSelectedIndex);
+            float y = mCandleDraw.getY(point.close);
+
+            // k线图竖线
+            canvas.drawLine(x, mCandleRect.top, x, mCandleRect.bottom, mSelectedYLinePaint);
+            // k线图横线
+            canvas.drawLine(-mTranslateX, y, -mTranslateX + mWidth / mScaleX, y, mSelectedXLinePaint);
+            // 柱状图竖线
+            canvas.drawLine(x, mCandleRect.bottom, x, mVolRect.bottom, mSelectedYLinePaint);
+            if (mChildDraw != null) {
+                // 子线图竖线
+                canvas.drawLine(x, mVolRect.bottom, x, mChildRect.bottom, mSelectedYLinePaint);
+            }
+        }
     }
 
     /**
@@ -435,9 +498,6 @@ public class KLineViewV2 extends ScrollAndScaleView {
      * @param canvas
      */
     private void drawValue(Canvas canvas) {
-        Paint.FontMetrics fm = mTextPaint.getFontMetrics();
-        float textHeight = fm.descent - fm.ascent;
-        float baseLine = (textHeight - fm.bottom - fm.top) / 2;
         //--------------画上方k线图的值-------------
         if (mCandleDraw != null) {
             mCandleDraw.drawValue(canvas);
@@ -450,65 +510,119 @@ public class KLineViewV2 extends ScrollAndScaleView {
         if (mChildDraw != null) {
             mChildDraw.drawValue(canvas);
         }
-//        if (isLongPress) {
-//            // 画Y值
-//            KLine point = (KLine) getItem(mSelectedIndex);
-//            float w1 = ViewUtil.dp2Px(getContext(), 5);
-//            float w2 = ViewUtil.dp2Px(getContext(), 3);
-//            float r = textHeight / 2 + w2;
-//            y = getMainY(point.close);
-//            float x;
-//            String text = formatValue(point.close);
-//            float textWidth = mTextPaint.measureText(text);
-//            if (translateXtoX(getX(mSelectedIndex)) < getChartWidth() / 2) {
-//                x = 1;
-//                Path path = new Path();
-//                path.moveTo(x, y - r);
-//                path.lineTo(x, y + r);
-//                path.lineTo(textWidth + 2 * w1, y + r);
-//                path.lineTo(textWidth + 2 * w1 + w2, y);
-//                path.lineTo(textWidth + 2 * w1, y - r);
-//                path.close();
-//                canvas.drawPath(path, mSelectedPointPaint);
-//                canvas.drawPath(path, mSelectorFramePaint);
-//                canvas.drawText(text, x + w1, fixTextY1(y), mTextPaint);
-//            } else {
-//                x = mWidth - textWidth - 1 - 2 * w1 - w2;
-//                Path path = new Path();
-//                path.moveTo(x, y);
-//                path.lineTo(x + w2, y + r);
-//                path.lineTo(mWidth - 2, y + r);
-//                path.lineTo(mWidth - 2, y - r);
-//                path.lineTo(x + w2, y - r);
-//                path.close();
-//                canvas.drawPath(path, mSelectedPointPaint);
-//                canvas.drawPath(path, mSelectorFramePaint);
-//                canvas.drawText(text, x + w1 + w2, fixTextY1(y), mTextPaint);
-//            }
-//
-//            // 画X值
-//            String date = formatDateTime(mAdapter.getDate(mSelectedIndex));
-//            textWidth = mTextPaint.measureText(date);
-//            r = textHeight / 2;
-//            x = translateXtoX(getX(mSelectedIndex));
-//            if (isShowChild) {
-//                y = mChildRect.bottom;
-//            } else {
-//                y = mVolRect.bottom;
-//            }
-//
-//            if (x < textWidth + 2 * w1) {
-//                x = 1 + textWidth / 2 + w1;
-//            } else if (mWidth - x < textWidth + 2 * w1) {
-//                x = mWidth - 1 - textWidth / 2 - w1;
-//            }
-//
-//            canvas.drawRect(x - textWidth / 2 - w1, y, x + textWidth / 2 + w1, y + baseLine + r, mSelectedPointPaint);
-//            canvas.drawRect(x - textWidth / 2 - w1, y, x + textWidth / 2 + w1, y + baseLine + r, mSelectorFramePaint);
-//            canvas.drawText(date, x - textWidth / 2, y + baseLine + 5, mTextPaint);
-//
-//            drawSelector(canvas);
-//        }
+    }
+
+    private void drawSelector(Canvas canvas) {
+        if (!isLongPress) {
+            return;
+        }
+        Paint.FontMetrics fm = mSelectedTextPaint.getFontMetrics();
+        float textHeight = fm.descent - fm.ascent;
+        float baseLine = (textHeight - fm.bottom - fm.top) / 2;
+        // 画Y值
+        KLine point = mAdapter.getItem(mSelectedIndex);
+        float w1 = ViewUtil.dp2Px(getContext(), 5);
+        float w2 = ViewUtil.dp2Px(getContext(), 3);
+        float r = textHeight / 2 + w2;
+        float y = mCandleDraw.getY(point.close);
+        float x;
+        String text = new ValueFormatter().format(point.close);
+        float textWidth = mSelectedTextPaint.measureText(text);
+        if (translateXtoX(getX(mSelectedIndex)) < mWidth / 2f) {
+            x = 1;
+            Path path = new Path();
+            path.moveTo(x, y - r);
+            path.lineTo(x, y + r);
+            path.lineTo(textWidth + 2 * w1, y + r);
+            path.lineTo(textWidth + 2 * w1 + w2, y);
+            path.lineTo(textWidth + 2 * w1, y - r);
+            path.close();
+            canvas.drawPath(path, mSelectedPointPaint);
+            canvas.drawPath(path, mSelectorFramePaint);
+            canvas.drawText(text, x + w1, mCandleDraw.fixTextY(y), mSelectedTextPaint);
+        } else {
+            x = mWidth - textWidth - 1 - 2 * w1 - w2;
+            Path path = new Path();
+            path.moveTo(x, y);
+            path.lineTo(x + w2, y + r);
+            path.lineTo(mWidth - 2, y + r);
+            path.lineTo(mWidth - 2, y - r);
+            path.lineTo(x + w2, y - r);
+            path.close();
+            canvas.drawPath(path, mSelectedPointPaint);
+            canvas.drawPath(path, mSelectorFramePaint);
+            canvas.drawText(text, x + w1 + w2, mCandleDraw.fixTextY(y), mSelectedTextPaint);
+        }
+
+        // 画X值
+        String date = new DateFormatter().format(mAdapter.getDate(mSelectedIndex));
+        textWidth = mSelectedTextPaint.measureText(date);
+        r = textHeight / 2;
+        x = translateXtoX(getX(mSelectedIndex));
+        if (isShowChild) {
+            y = mChildRect.bottom;
+        } else {
+            y = mVolRect.bottom;
+        }
+
+        if (x < textWidth + 2 * w1) {
+            x = 1 + textWidth / 2 + w1;
+        } else if (mWidth - x < textWidth + 2 * w1) {
+            x = mWidth - 1 - textWidth / 2 - w1;
+        }
+
+        canvas.drawRect(x - textWidth / 2 - w1, y, x + textWidth / 2 + w1, y + baseLine + r, mSelectedPointPaint);
+        canvas.drawRect(x - textWidth / 2 - w1, y, x + textWidth / 2 + w1, y + baseLine + r, mSelectorFramePaint);
+        canvas.drawText(date, x - textWidth / 2, y + baseLine, mSelectedTextPaint);
+    }
+
+    /**
+     * draw选择器
+     * @param canvas
+     */
+    public void drawSelectorWindow(Canvas canvas) {
+        if (!isLongPress) {
+            return;
+        }
+        Paint.FontMetrics metrics = mSelectorWindowTextPaint.getFontMetrics();
+        float textHeight = metrics.descent - metrics.ascent;
+
+        int index = getSelectedIndex();
+        float padding = ViewUtil.dp2Px(getContext(), 5);
+        float margin = ViewUtil.dp2Px(getContext(), 5);
+        float width = 0;
+        float left;
+        float top = margin + mCandleDraw.getTopPadding();
+        float height = padding * 8 + textHeight * 5;
+
+        Candle point = (Candle) mAdapter.getItem(index);
+        List<String> strings = new ArrayList<>();
+        strings.add(new DateFormatter().format(getAdapter().getDate(index)));
+        strings.add("高:" + point.high);
+        strings.add("低:" + point.low);
+        strings.add("开:" + point.open);
+        strings.add("收:" + point.close);
+
+        for (String s : strings) {
+            width = Math.max(width, mSelectorWindowTextPaint.measureText(s));
+        }
+        width += padding * 2;
+
+        float x = translateXtoX(getX(index));
+        if (x > mWidth / 2f) {
+            left = margin;
+        } else {
+            left = mWidth - width - margin;
+        }
+
+        RectF r = new RectF(left, top, left + width, top + height);
+        canvas.drawRoundRect(r, padding, padding, mSelectorWindowBackgroundPaint);
+        float y = top + padding * 2 + (textHeight - metrics.bottom - metrics.top) / 2;
+
+        for (String s : strings) {
+            canvas.drawText(s, left + padding, y, mSelectorWindowTextPaint);
+            y += textHeight + padding;
+        }
     }
 
     private int mGridColumns = 4;
@@ -714,6 +828,15 @@ public class KLineViewV2 extends ScrollAndScaleView {
         mTranslateX = scrollX + getMinTranslateX();
     }
 
+    /**
+     * translateX转化为view中的x
+     *
+     * @param translateX
+     * @return
+     */
+    public float translateXtoX(float translateX) {
+        return (translateX + mTranslateX) * mScaleX;
+    }
 
     /**
      * 设置超出右方后可滑动的范围
@@ -739,6 +862,19 @@ public class KLineViewV2 extends ScrollAndScaleView {
      */
     public void setRefreshListener(KChartRefreshListener refreshListener) {
         mRefreshListener = refreshListener;
+    }
+
+    /**
+     * 设置选择监听
+     */
+    public void setOnSelectedChangedListener(OnSelectedChangedListener l) {
+        this.mOnSelectedChangedListener = l;
+    }
+
+    public void onSelectedChanged(KLineViewV2 view, Object point, int index) {
+        if (this.mOnSelectedChangedListener != null) {
+            mOnSelectedChangedListener.onSelectedChanged(view, point, index);
+        }
     }
 
     private float getDimension(@DimenRes int resId) {
@@ -789,6 +925,7 @@ public class KLineViewV2 extends ScrollAndScaleView {
      */
     public void setTextSize(float textSize) {
         mTextPaint.setTextSize(textSize);
+        mSelectedTextPaint.setTextSize(textSize);
         mCandleDraw.setTextSize(textSize);
         mBOLLDraw.setTextSize(textSize);
         mRSIDraw.setTextSize(textSize);
@@ -799,11 +936,11 @@ public class KLineViewV2 extends ScrollAndScaleView {
 
     public void setLineWidth(float lineWidth) {
         mCandleDraw.setLineWidth(lineWidth);
+        mVolumeDraw.setLineWidth(lineWidth);
         mBOLLDraw.setLineWidth(lineWidth);
         mRSIDraw.setLineWidth(lineWidth);
         mMACDDraw.setLineWidth(lineWidth);
         mKDJDraw.setLineWidth(lineWidth);
-        mVolumeDraw.setLineWidth(lineWidth);
     }
 
     /**
@@ -828,10 +965,9 @@ public class KLineViewV2 extends ScrollAndScaleView {
         mGridPaint.setColor(color);
         mCandleDraw.setGridLineColor(color);
         mVolumeDraw.setGridLineColor(color);
-        mMACDDraw.setGridLineColor(color);
-        mKDJDraw.setGridLineColor(color);
-        mBOLLDraw.setGridLineColor(color);
-        mRSIDraw.setGridLineColor(color);
+        for(String key : mChildDraws.keySet()) {
+            mChildDraws.get(key).setGridLineColor(color);
+        }
     }
 
     /**
@@ -854,6 +990,24 @@ public class KLineViewV2 extends ScrollAndScaleView {
      */
     public void setBackgroundColor(int color) {
         mBackgroundPaint.setColor(color);
+    }
+
+    /**
+     * 是否长按
+     */
+    public boolean isLongPress() {
+        return isLongPress;
+    }
+
+    /**
+     * 获取选择索引
+     */
+    public int getSelectedIndex() {
+        return mSelectedIndex;
+    }
+
+    public void setSelectedPaintTextColor(int color) {
+        mSelectedTextPaint.setColor(color);
     }
 
     /**
@@ -892,11 +1046,19 @@ public class KLineViewV2 extends ScrollAndScaleView {
     }
 
     /**
-     * 设置选择器文字大小
+     * 设置选择器浮窗文字大小
      * @param textSize
      */
     public void setSelectorWindowTextSize(float textSize){
         mSelectorWindowTextPaint.setTextSize(textSize);
+    }
+
+    /**
+     * 设置选择器浮窗文字颜色
+     * @param color
+     */
+    public void setSelectorWindowTextColor(int color){
+        mSelectorWindowTextPaint.setColor(color);
     }
 
     /**
