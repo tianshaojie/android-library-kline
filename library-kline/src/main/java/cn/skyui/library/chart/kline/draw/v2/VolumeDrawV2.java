@@ -57,7 +57,8 @@ public class VolumeDrawV2 extends BaseChartDraw {
         }
     }
 
-    public void drawTitle(@NonNull Canvas canvas, @NonNull KLine chartData, float x, float y) {
+    public void drawTitle(@NonNull Canvas canvas, @NonNull KLine chartData) {
+        float x = 0, y = mRect.top + mTextBaseline;
         Volume point = chartData.vol;
         String text = "VOL:" + KLine.getValueFormatter(ChartEnum.VOL.name()).format(point.volume) + "  ";
         canvas.drawText(text, x, y, mTextPaint);
@@ -98,6 +99,7 @@ public class VolumeDrawV2 extends BaseChartDraw {
      * @param textSize
      */
     public void setTextSize(float textSize) {
+        super.setTextSize(textSize);
         this.ma5Paint.setTextSize(textSize);
         this.ma10Paint.setTextSize(textSize);
         this.mTextPaint.setTextSize(textSize);

@@ -1,4 +1,5 @@
 <resources>
     <dimen name="kline_vol_rect_height">100dp</dimen>
     <dimen name="kline_child_rect_height">100dp</dimen>
+    <dimen name="kline_time_rect_height">12dp</dimen>
 </resources>

@@ -31,6 +31,7 @@ public abstract class BaseChartDraw {
     protected float mChartItemWidth; // 每根K线总宽度，包含间距
     protected Paint mGridPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     protected Paint mTextPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    protected float mTextBaseline;
 
     protected float mMaxValue = Float.MIN_VALUE;
     protected float mMinValue = Float.MAX_VALUE;
@@ -47,6 +48,10 @@ public abstract class BaseChartDraw {
         mGridPaint.setStrokeWidth(context.getResources().getDimension(R.dimen.chart_line_width));
         mChartItemWidth = context.getResources().getDimension(R.dimen.chart_item_width);
         mTopPadding = context.getResources().getDimension(R.dimen.chart_top_padding);
+
+        Paint.FontMetrics fm = mTextPaint.getFontMetrics();
+        float textHeight = fm.descent - fm.ascent;
+        mTextBaseline = (textHeight - fm.bottom - fm.top) / 2;
     }
 
     public void setRect(Rect rect) {
@@ -152,6 +157,16 @@ public abstract class BaseChartDraw {
 
     protected IValueFormatter getValueFormatter() {
         return new ValueFormatter();
+    }
+
+    /**
+     * 设置文字大小
+     */
+    public void setTextSize(float textSize) {
+        mTextPaint.setTextSize(textSize);
+        Paint.FontMetrics fm = mTextPaint.getFontMetrics();
+        float textHeight = fm.descent - fm.ascent;
+        mTextBaseline = (textHeight - fm.bottom - fm.top) / 2;
     }
 
     /**

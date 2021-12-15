@@ -67,7 +67,8 @@ public class MacdDrawV2 extends BaseChartDraw {
         }
     }
 
-    public void drawTitle(@NonNull Canvas canvas, @NonNull KLine chartData, float x, float y) {
+    public void drawTitle(@NonNull Canvas canvas, @NonNull KLine chartData) {
+        float x = 0, y = mRect.top + mTextBaseline;
         Macd point = chartData.macd;
         String text = "MACD(12,26,9)  ";
         canvas.drawText(text, x, y, mTextPaint);
@@ -125,6 +126,7 @@ public class MacdDrawV2 extends BaseChartDraw {
      * 设置文字大小
      */
     public void setTextSize(float textSize) {
+        super.setTextSize(textSize);
         mDEAPaint.setTextSize(textSize);
         mDIFPaint.setTextSize(textSize);
         mMACDPaint.setTextSize(textSize);

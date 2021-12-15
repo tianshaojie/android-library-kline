@@ -161,7 +161,8 @@ public class CandleDrawV2 extends BaseChartDraw {
         }
     }
 
-    public void drawTitle(@NonNull Canvas canvas, @NonNull KLine point, float x, float y) {
+    public void drawTitle(@NonNull Canvas canvas, @NonNull KLine point) {
+        float x = 0, y = mRect.top + mTextBaseline;
         String text = "MA5:" + KLine.getValueFormatter(ChartEnum.CANDLE.name()).format(point.ma5Price) + "  ";
         canvas.drawText(text, x, y, ma5Paint);
         x += ma5Paint.measureText(text);
@@ -315,7 +316,7 @@ public class CandleDrawV2 extends BaseChartDraw {
      * 设置文字大小
      */
     public void setTextSize(float textSize) {
-        mTextPaint.setTextSize(textSize);
+        super.setTextSize(textSize);
         ma20Paint.setTextSize(textSize);
         ma10Paint.setTextSize(textSize);
         ma5Paint.setTextSize(textSize);

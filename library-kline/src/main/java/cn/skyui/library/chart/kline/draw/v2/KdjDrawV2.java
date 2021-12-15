@@ -29,7 +29,8 @@ public class KdjDrawV2 extends BaseChartDraw {
     @Override
     public void drawChartItem(@NonNull Canvas canvas, @Nullable KLine prevPoint, @NonNull KLine currPoint, float prevX, float currX) {
         float r = mChartItemWidth / 2;
-        currX+=r; prevX+=r;
+        currX += r;
+        prevX += r;
         drawLine(canvas, mKPaint, prevX, prevPoint.kdj.k, currX, currPoint.kdj.k);
         drawLine(canvas, mDPaint, prevX, prevPoint.kdj.d, currX, currPoint.kdj.d);
         drawLine(canvas, mJPaint, prevX, prevPoint.kdj.j, currX, currPoint.kdj.j);
@@ -72,8 +73,7 @@ public class KdjDrawV2 extends BaseChartDraw {
     /**
      * 设置曲线宽度
      */
-    public void setLineWidth(float width)
-    {
+    public void setLineWidth(float width) {
         mKPaint.setStrokeWidth(width);
         mDPaint.setStrokeWidth(width);
         mJPaint.setStrokeWidth(width);
@@ -82,8 +82,8 @@ public class KdjDrawV2 extends BaseChartDraw {
     /**
      * 设置文字大小
      */
-    public void setTextSize(float textSize)
-    {
+    public void setTextSize(float textSize) {
+        super.setTextSize(textSize);
         mKPaint.setTextSize(textSize);
         mDPaint.setTextSize(textSize);
         mJPaint.setTextSize(textSize);

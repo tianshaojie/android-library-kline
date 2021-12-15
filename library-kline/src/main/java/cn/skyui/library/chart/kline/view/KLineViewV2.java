@@ -32,6 +32,7 @@ import cn.skyui.library.chart.kline.draw.v2.KdjDrawV2;
 import cn.skyui.library.chart.kline.draw.v2.MacdDrawV2;
 import cn.skyui.library.chart.kline.draw.v2.RsiDrawV2;
 import cn.skyui.library.chart.kline.draw.v2.VolumeDrawV2;
+import cn.skyui.library.chart.kline.formatter.DateFormatter;
 
 /**
  * k线图
@@ -39,18 +40,41 @@ import cn.skyui.library.chart.kline.draw.v2.VolumeDrawV2;
 public class KLineViewV2 extends ScrollAndScaleView {
 
     private KLineChartAdapter mAdapter;
+
+    private int mWidth = 0;
+    private int mHeight = 0;
+    private float mChartItemWidth; // 每根K线总宽度，包含间距
+    private Paint mGridPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private Paint mTextPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+
+    private Rect mKLineRect;
+    private Rect mCandleRect;
+    private Rect mVolRect;
+    private Rect mChildRect;
+    private Rect mTimeRect;
+
+    private boolean isShowVol = true;
+    private float mVolRectHeight;
+
+    private boolean isShowChild = true;
+    private float mChildRectHeight;
+
+    private float mTimeRectHeight;
+
     private int mStartIndex = 0; // 可见区域数据List的开始索引位置
     private int mStopIndex = 0;  // 可见区域数据List的结束索引位置
     private int mSelectedIndex;
     private float mDataLen = 0;
     private float mTranslateX = Float.MIN_VALUE;
 
-    private int mWidth = 0;
-    private int mHeight = 0;
-
-    private Rect mKLineRect;
-    private Paint mGridPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-    private Paint mTextPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private BaseChartDraw mChildDraw;
+    private Map<String, BaseChartDraw> mChildDraws = new HashMap<>();
+    private CandleDrawV2 mCandleDraw;
+    private VolumeDrawV2 mVolumeDraw;
+    private MacdDrawV2 mMACDDraw;
+    private KdjDrawV2 mKDJDraw;
+    private RsiDrawV2 mRSIDraw;
+    private BollDrawV2 mBOLLDraw;
 
     // 长按浮窗
     private Paint mSelectorWindowTextPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -61,26 +85,6 @@ public class KLineViewV2 extends ScrollAndScaleView {
     private Paint mSelectedYLinePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private Paint mSelectedPointPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private Paint mSelectorFramePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-
-    private Rect mCandleRect;
-    protected float mChartItemWidth; // 每根K线总宽度，包含间距
-    private CandleDrawV2 mCandleDraw;
-    private VolumeDrawV2 mVolumeDraw;
-    private MacdDrawV2 mMACDDraw;
-    private KdjDrawV2 mKDJDraw;
-    private RsiDrawV2 mRSIDraw;
-    private BollDrawV2 mBOLLDraw;
-
-    private BaseChartDraw mChildDraw;
-    private Map<String, BaseChartDraw> mChildDraws = new HashMap<>();
-
-    private boolean isShowVol = true;
-    private float mVolRectHeight;
-    private Rect mVolRect;
-
-    private boolean isShowChild = true;
-    private float mChildRectHeight;
-    private Rect mChildRect;
 
     private ProgressBar mProgressBar;
     private boolean isRefreshing = false;
@@ -142,6 +146,7 @@ public class KLineViewV2 extends ScrollAndScaleView {
             setVolRectHeight(array.getDimension(R.styleable.KLineView_kline_vol_rect_height, getDimension(R.dimen.kline_vol_rect_height)));
             setShowChild(array.getBoolean(R.styleable.KLineView_kline_is_show_child_rect, true));
             setChildRectHeight(array.getDimension(R.styleable.KLineView_kline_child_rect_height, getDimension(R.dimen.kline_child_rect_height)));
+            setTimeRectHeight(array.getDimension(R.styleable.KLineView_kline_time_rect_height, getDimension(R.dimen.kline_time_rect_height)));
             // 背景色
             setBackgroundColor(array.getColor(R.styleable.KLineView_kline_background_color, getColor(R.color.chart_background)));
             // 坐标格线条颜色宽度
@@ -281,20 +286,22 @@ public class KLineViewV2 extends ScrollAndScaleView {
 
     private void initRect() {
         int paintWidth = (int) mGridPaint.getStrokeWidth()/2;
-        mKLineRect = new Rect(paintWidth, paintWidth, mWidth-paintWidth, mHeight-paintWidth);
+        mKLineRect = new Rect(paintWidth, paintWidth, mWidth - paintWidth, mHeight - paintWidth);
         if (isShowVol && isShowChild) {
-            mCandleRect = new Rect(0, 0, mWidth, (int) (mHeight - mVolRectHeight - mChildRectHeight));
+            mCandleRect = new Rect(0, 0, mWidth, (int) (mHeight - mVolRectHeight - mChildRectHeight - mTimeRectHeight));
             mVolRect = new Rect(0, mCandleRect.bottom, mWidth, (int) (mCandleRect.bottom + mVolRectHeight));
             mChildRect = new Rect(0, mVolRect.bottom, mWidth, (int) (mVolRect.bottom + mChildRectHeight));
-        } else if(isShowVol) {
-            mCandleRect = new Rect(0, 0, mWidth, (int) (mHeight - mVolRectHeight));
+        } else if (isShowVol) {
+            mCandleRect = new Rect(0, 0, mWidth, (int) (mHeight - mVolRectHeight - mTimeRectHeight));
             mVolRect = new Rect(0, mCandleRect.bottom, mWidth, (int) (mCandleRect.bottom + mVolRectHeight));
-        } else if(isShowChild) {
-            mCandleRect = new Rect(0, 0, mWidth, (int) (mHeight - mVolRectHeight));
+        } else if (isShowChild) {
+            mCandleRect = new Rect(0, 0, mWidth, (int) (mHeight - mChildRectHeight - mTimeRectHeight));
             mChildRect = new Rect(0, mCandleRect.bottom, mWidth, (int) (mCandleRect.bottom + mChildRectHeight));
-        } if (!isShowVol && !isShowChild) {
-            mCandleRect = new Rect(0, 0, mWidth, mHeight);
         }
+        if (!isShowVol && !isShowChild) {
+            mCandleRect = new Rect(0, 0, mWidth, (int) (mHeight - mTimeRectHeight));
+        }
+        mTimeRect = new Rect(0, (int) (mHeight - mTimeRectHeight + paintWidth), mWidth - paintWidth, mHeight - paintWidth);
 
         mCandleDraw.setRect(mCandleRect);
         mVolumeDraw.setRect(mVolRect);
@@ -314,15 +321,17 @@ public class KLineViewV2 extends ScrollAndScaleView {
         canvas.save();
         canvas.scale(1, 1);
         canvas.drawRect(mKLineRect, mGridPaint);
+        canvas.drawLine(0, mHeight - mTimeRectHeight, mWidth, mHeight - mTimeRectHeight, mGridPaint);
         this.calculateValue();
         mCandleDraw.calculateValue(mAdapter.getItems(), mStartIndex, mStopIndex);
         mVolumeDraw.calculateValue(mAdapter.getItems(), mStartIndex, mStopIndex);
         mMACDDraw.calculateValue(mAdapter.getItems(), mStartIndex, mStopIndex);
-        mCandleDraw.drawGird(canvas);
         this.drawChart(canvas);
-        this.drawTitleText(canvas, isLongPress ? mSelectedIndex : mStopIndex);
-        this.drawText(canvas);
+        mCandleDraw.drawGird(canvas);
         mCandleDraw.drawMaxMin(canvas, mTranslateX);
+        this.drawTitle(canvas, isLongPress ? mSelectedIndex : mStopIndex);
+        this.drawValue(canvas);
+        this.drawTime(canvas);
         canvas.restore();
     }
 
@@ -405,22 +414,17 @@ public class KLineViewV2 extends ScrollAndScaleView {
      * @param canvas
      * @param position 显示某个点的值
      */
-    private void drawTitleText(Canvas canvas, int position) {
-        Paint.FontMetrics fm = mTextPaint.getFontMetrics();
-        float textHeight = fm.descent - fm.ascent;
+    private void drawTitle(Canvas canvas, int position) {
         if (position >= 0 && position < mItemCount) {
             KLine point = mAdapter.getItem(position);
             if (mCandleDraw != null) {
-                float y = mCandleRect.top + mCandleDraw.getTopPadding() - textHeight/2;
-                mCandleDraw.drawTitle(canvas, point, 0, y);
+                mCandleDraw.drawTitle(canvas, point);
             }
             if (mVolumeDraw != null) {
-                float y = mVolRect.top + mVolumeDraw.getTopPadding() - textHeight/2;
-                mVolumeDraw.drawTitle(canvas, point, 0, y);
+                mVolumeDraw.drawTitle(canvas, point);
             }
             if (mMACDDraw != null) {
-                float y = mChildRect.top + mMACDDraw.getTopPadding() - textHeight/2;
-                mMACDDraw.drawTitle(canvas, point, 0, y);
+                mMACDDraw.drawTitle(canvas, point);
             }
         }
     }
@@ -430,7 +434,7 @@ public class KLineViewV2 extends ScrollAndScaleView {
      *
      * @param canvas
      */
-    private void drawText(Canvas canvas) {
+    private void drawValue(Canvas canvas) {
         Paint.FontMetrics fm = mTextPaint.getFontMetrics();
         float textHeight = fm.descent - fm.ascent;
         float baseLine = (textHeight - fm.bottom - fm.top) / 2;
@@ -446,36 +450,6 @@ public class KLineViewV2 extends ScrollAndScaleView {
         if (mChildDraw != null) {
             mChildDraw.drawValue(canvas);
         }
-//        //--------------画时间---------------------
-//        float columnSpace = mWidth / mGridColumns;
-//        float y;
-//        if (isShowChild) {
-//            y = mChildRect.bottom + baseLine + 5;
-//        } else {
-//            y = mVolRect.bottom + baseLine + 5;
-//        }
-//
-//        float startX = getX(mStartIndex) - mPointWidth / 2;
-//        float stopX = getX(mStopIndex) + mPointWidth / 2;
-//
-//        for (int i = 1; i < mGridColumns; i++) {
-//            float translateX = xToTranslateX(columnSpace * i);
-//            if (translateX >= startX && translateX <= stopX) {
-//                int index = indexOfTranslateX(translateX);
-//                String text = formatDateTime(mAdapter.getDate(index));
-//                canvas.drawText(text, columnSpace * i - mTextPaint.measureText(text) / 2, y, mTextPaint);
-//            }
-//        }
-//
-//        float translateX = xToTranslateX(0);
-//        if (translateX >= startX && translateX <= stopX) {
-//            canvas.drawText(formatDateTime(getAdapter().getDate(mStartIndex)), 0, y, mTextPaint);
-//        }
-//        translateX = xToTranslateX(mWidth);
-//        if (translateX >= startX && translateX <= stopX) {
-//            String text = formatDateTime(getAdapter().getDate(mStopIndex));
-//            canvas.drawText(text, mWidth - mTextPaint.measureText(text), y, mTextPaint);
-//        }
 //        if (isLongPress) {
 //            // 画Y值
 //            KLine point = (KLine) getItem(mSelectedIndex);
@@ -535,6 +509,38 @@ public class KLineViewV2 extends ScrollAndScaleView {
 //
 //            drawSelector(canvas);
 //        }
+    }
+
+    private int mGridColumns = 4;
+
+    private void drawTime(Canvas canvas) {
+        Paint.FontMetrics fm = mTextPaint.getFontMetrics();
+        float textHeight = fm.descent - fm.ascent;
+        float baseLine = (textHeight - fm.bottom - fm.top) / 2;
+        float columnSpace = mWidth / mGridColumns;
+        float y = mTimeRect.top + baseLine;
+
+        float startX = getX(mStartIndex) - getChartItemWidth() / 2;
+        float stopX = getX(mStopIndex) + getChartItemWidth() / 2;
+
+        for (int i = 1; i < mGridColumns; i++) {
+            float translateX = xToTranslateX(columnSpace * i);
+            if (translateX >= startX && translateX <= stopX) {
+                int index = indexOfTranslateX(translateX);
+                String text = new DateFormatter().format(mAdapter.getDate(index));
+                canvas.drawText(text, columnSpace * i - mTextPaint.measureText(text) / 2, y, mTextPaint);
+            }
+        }
+
+        float translateX = xToTranslateX(0);
+        if (translateX >= startX && translateX <= stopX) {
+            canvas.drawText(new DateFormatter().format(getAdapter().getDate(mStartIndex)), 0, y, mTextPaint);
+        }
+        translateX = xToTranslateX(mWidth);
+        if (translateX >= startX && translateX <= stopX) {
+            String text = new DateFormatter().format(getAdapter().getDate(mStopIndex));
+            canvas.drawText(text, mWidth - mTextPaint.measureText(text), y, mTextPaint);
+        }
     }
 
 
@@ -759,22 +765,20 @@ public class KLineViewV2 extends ScrollAndScaleView {
         this.mChildRectHeight = childRectHeight;
     }
 
+    public void setTimeRectHeight(float timeRectHeight) {
+        this.mTimeRectHeight = timeRectHeight;
+    }
+
     public int dp2px(float dp) {
         final float scale = getContext().getResources().getDisplayMetrics().density;
         return (int) (dp * scale + 0.5f);
     }
 
     /**
-     * 获取文字大小
-     */
-    public float getTextSize() {
-        return mTextPaint.getTextSize();
-    }
-
-    /**
      * 设置文字颜色
      */
     public void setTextColor(int color) {
+        mTextPaint.setColor(color);
         mCandleDraw.setTextColor(color);
         mVolumeDraw.setTextColor(color);
         mMACDDraw.setTextColor(color);
@@ -784,6 +788,7 @@ public class KLineViewV2 extends ScrollAndScaleView {
      * 设置文字大小
      */
     public void setTextSize(float textSize) {
+        mTextPaint.setTextSize(textSize);
         mCandleDraw.setTextSize(textSize);
         mBOLLDraw.setTextSize(textSize);
         mRSIDraw.setTextSize(textSize);

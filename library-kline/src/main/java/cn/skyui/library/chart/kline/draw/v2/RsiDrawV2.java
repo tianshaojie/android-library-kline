@@ -29,12 +29,13 @@ public class RsiDrawV2 extends BaseChartDraw {
     @Override
     public void drawChartItem(@NonNull Canvas canvas, @Nullable KLine prevPoint, @NonNull KLine currPoint, float prevX, float currX) {
         float r = mChartItemWidth / 2;
-        currX+=r; prevX+=r;
+        currX += r;
+        prevX += r;
         drawLine(canvas, mRSI1Paint, prevX, prevPoint.rsi.rsi1, currX, currPoint.rsi.rsi1);
         drawLine(canvas, mRSI2Paint, prevX, prevPoint.rsi.rsi2, currX, currPoint.rsi.rsi2);
         drawLine(canvas, mRSI3Paint, prevX, prevPoint.rsi.rsi3, currX, currPoint.rsi.rsi3);
     }
-    
+
 
     public void drawText(@NonNull Canvas canvas, @NonNull IChartData chartData, float x, float y) {
         Rsi point = (Rsi) chartData;
@@ -64,8 +65,7 @@ public class RsiDrawV2 extends BaseChartDraw {
     /**
      * 设置曲线宽度
      */
-    public void setLineWidth(float width)
-    {
+    public void setLineWidth(float width) {
         mRSI1Paint.setStrokeWidth(width);
         mRSI2Paint.setStrokeWidth(width);
         mRSI3Paint.setStrokeWidth(width);
@@ -74,11 +74,11 @@ public class RsiDrawV2 extends BaseChartDraw {
     /**
      * 设置文字大小
      */
-    public void setTextSize(float textSize)
-    {
+    public void setTextSize(float textSize) {
+        super.setTextSize(textSize);
         mRSI2Paint.setTextSize(textSize);
         mRSI3Paint.setTextSize(textSize);
         mRSI1Paint.setTextSize(textSize);
     }
-    
+
 }

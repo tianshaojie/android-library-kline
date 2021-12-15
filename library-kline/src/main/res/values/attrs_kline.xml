@@ -6,6 +6,7 @@
         <attr name="kline_is_show_child_rect" format="boolean"/>
         <attr name="kline_vol_rect_height" format="dimension"/>
         <attr name="kline_child_rect_height" format="dimension"/>
+        <attr name="kline_time_rect_height" format="dimension"/>
 
         <!--公共的-->
         <!-- KLine字体大小颜色-边框字体 -->

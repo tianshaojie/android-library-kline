@@ -29,7 +29,8 @@ public class BollDrawV2 extends BaseChartDraw {
     @Override
     public void drawChartItem(@NonNull Canvas canvas, @Nullable KLine prevPoint, @NonNull KLine currPoint, float prevX, float currX) {
         float r = mChartItemWidth / 2;
-        currX+=r; prevX+=r;
+        currX += r;
+        prevX += r;
         drawLine(canvas, mUpPaint, prevX, prevPoint.boll.up, currX, currPoint.boll.up);
         drawLine(canvas, mMbPaint, prevX, prevPoint.boll.mb, currX, currPoint.boll.mb);
         drawLine(canvas, mDnPaint, prevX, prevPoint.boll.dn, currX, currPoint.boll.dn);
@@ -57,6 +58,7 @@ public class BollDrawV2 extends BaseChartDraw {
 
     /**
      * 设置mb颜色
+     *
      * @param color
      */
     public void setMbColor(int color) {
@@ -73,8 +75,7 @@ public class BollDrawV2 extends BaseChartDraw {
     /**
      * 设置曲线宽度
      */
-    public void setLineWidth(float width)
-    {
+    public void setLineWidth(float width) {
         mUpPaint.setStrokeWidth(width);
         mMbPaint.setStrokeWidth(width);
         mDnPaint.setStrokeWidth(width);
@@ -83,8 +84,8 @@ public class BollDrawV2 extends BaseChartDraw {
     /**
      * 设置文字大小
      */
-    public void setTextSize(float textSize)
-    {
+    public void setTextSize(float textSize) {
+        super.setTextSize(textSize);
         mUpPaint.setTextSize(textSize);
         mMbPaint.setTextSize(textSize);
         mDnPaint.setTextSize(textSize);
